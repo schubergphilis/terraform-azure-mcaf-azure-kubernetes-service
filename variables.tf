@@ -181,10 +181,10 @@ variable "linux_profile" {
 variable "route_table" {
   description = "The route table to associate with the node subnet"
   type = object({
-    name = optional(string)
+    name = optional(string, "aks-rt")
     bgp_route_propagation_enabled = optional(bool, false)
   })
-  default = null
+  default = {}
 }
 
 variable "network_plugin" {
