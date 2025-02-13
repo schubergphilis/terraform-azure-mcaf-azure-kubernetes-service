@@ -197,6 +197,12 @@ variable "network_plugin" {
   }
 }
 
+variable "vnet_id" {
+  description = "The ID of the VNet where the AKS cluster will be created"
+  type        = string
+  default     = null
+}
+
 variable "network_plugin_mode" {
   description = "(Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is overlay."
   default     = null
