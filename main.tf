@@ -124,7 +124,7 @@ resource "azurerm_route_table" "this" {
 
 resource "azurerm_subnet_route_table_association" "subnet_route_table" {
   subnet_id      = var.node_subnet
-  route_table_id = azurerm_route_table.this[0].id
+  route_table_id = azurerm_route_table.this.id
 
   depends_on = [ azurerm_route_table.this ]
 }
@@ -135,5 +135,5 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
   role_definition_name = "Network Contributor"
   principal_id         = var.user_assigned_identity_id
 
-  depends_on = [azurerm_route_table.this]
+  depends_on = [ azurerm_route_table.this ]
 }
