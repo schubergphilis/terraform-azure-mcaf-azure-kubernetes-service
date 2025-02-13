@@ -11,6 +11,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   workload_identity_enabled = var.workload_identity_enabled
   oidc_issuer_enabled       = var.oidc_issuer_enabled
   azure_policy_enabled      = var.azure_policy_enabled
+  tags                      = var.tags
 
   node_resource_group = var.node_resource_group_name
 
@@ -83,13 +84,6 @@ resource "azurerm_kubernetes_cluster" "this" {
       kubernetes_version
     ]
   }
-
-  tags = merge(
-    local.ccoe_tags,
-    tomap({
-      "Resource Type" = "Azure Kubernetes Service",
-    })
-  )
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "this" {
@@ -115,4 +109,23 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   os_disk_type            = each.value.os_disk_type
   os_type                 = each.value.os_type
   tags                    = var.tags
+}
+
+
+resource "azurerm_route_table" "this" {
+  count = var.network_plugin == "azure" ? 0 : 1
+
+  name                           = var.route_table.name
+  location                       = var.location
+  resource_group_name            = var.resource_group_name
+  tags                           = var.tags
+  bgp_route_propagation_enabled  = var.route_table.bgp_route_propagation_enabled
+}
+
+resource "azurerm_role_assignment" "aks_vnet_rbac" {
+  scope                = azurerm_virtual_network.this.id
+  role_definition_name = "Network Contributor"
+  principal_id         = var.user_assigned_identity_id
+
+  depends_on = [azurerm_route_table.this]
 }

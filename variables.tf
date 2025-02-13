@@ -178,6 +178,15 @@ variable "linux_profile" {
 #   type        = list(string)
 # }
 
+variable "route_table" {
+  description = "The route table to associate with the node subnet"
+  type = optional(object({
+    name = optional(string)
+    bgp_route_propagation_enabled = optional(bool, false)
+  }))
+  default = null
+}
+
 variable "network_plugin" {
   description = "The network plugin to use for networking. Possible values are azure and kubenet. Defaults to azure. When network_plugin is set to azure - the pod_cidr field must not be set, unless specifying network_plugin_mode to overlay."
   type        = string
@@ -200,10 +209,10 @@ variable "dns_service_ip" {
 variable "outbound_type" {
   description = "(Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are loadBalancer, userDefinedRouting, managedNATGateway and userAssignedNATGateway. Defaults to loadBalancer. Defaults to loadBalancer."
   type        = string
-  default     = "None"
+  default     = "userDefinedRouting"
 
   validation {
-    condition     = contains(["loadBalancer", "userDefinedRouting", "managedNATGateway", "userAssignedNATGateway", "None"], var.outbound_type)
+    condition     = contains(["loadBalancer", "userDefinedRouting", "managedNATGateway", "userAssignedNATGateway"], var.outbound_type)
     error_message = "The outbound type is invalid."
   }
 }
@@ -218,6 +227,11 @@ variable "service_cidr" {
   description = "(Optional) The Network Range used by the Kubernetes service. Changing this forces a new resource to be created."
   type        = string
   default     = null
+}
+
+variable "bgp_route_propagation_enabled" {
+  type    = bool
+  default = false
 }
 
 # variable "network_data_plane" {
