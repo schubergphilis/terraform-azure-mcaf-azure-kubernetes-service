@@ -126,7 +126,7 @@ resource "azurerm_subnet_route_table_association" "subnet_route_table" {
   count = var.network_plugin == "azure" ? 0 : 1
 
   subnet_id      = var.node_subnet
-  route_table_id = azurerm_route_table.this.id
+  route_table_id = azurerm_route_table.this[0].id
 
   depends_on = [ azurerm_route_table.this ]
 }
