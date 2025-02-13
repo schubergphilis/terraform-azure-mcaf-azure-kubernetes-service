@@ -123,7 +123,7 @@ resource "azurerm_route_table" "this" {
 }
 
 resource "azurerm_role_assignment" "aks_vnet_rbac" {
-  scope                = azurerm_virtual_network.this.id
+  scope                = local.vnet_id
   role_definition_name = "Network Contributor"
   principal_id         = var.user_assigned_identity_id
 
