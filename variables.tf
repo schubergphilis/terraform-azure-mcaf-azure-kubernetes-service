@@ -39,6 +39,12 @@ variable "kubernetes_version" {
   default = "1.28.9"
 }
 
+variable "network_proxy_disabled" {
+  description = "Should the Kubernetes Cluster have the kube-proxy disabled? Defaults to false."
+  type        = bool
+  default     = false
+}
+
 variable "private_cluster_enabled" {
   description = "Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to false. Changing this forces a new resource to be created."
   type        = bool

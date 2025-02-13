@@ -111,6 +111,23 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   tags                    = var.tags
 }
 
+resource "azapi_update_resource" "kube_proxy_disabled" {
+  count = var.network_proxy_disabled == true ? 1 : 0
+
+  resource_id = azurerm_kubernetes_cluster.this.id
+  type        = "Microsoft.ContainerService/managedClusters@2024-09-02-preview"
+  body = {
+    properties = {
+      networkProfile = {
+        kubeProxyConfig = {
+          enabled = false
+        }
+      }
+    }
+  }
+
+  depends_on = [ azurerm_kubernetes_cluster.this ]
+}
 
 resource "azurerm_route_table" "this" {
   count = var.network_plugin == "azure" ? 0 : 1
