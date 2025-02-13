@@ -180,10 +180,10 @@ variable "linux_profile" {
 
 variable "route_table" {
   description = "The route table to associate with the node subnet"
-  type = optional(object({
+  type = object({
     name = optional(string)
     bgp_route_propagation_enabled = optional(bool, false)
-  }))
+  })
   default = null
 }
 
