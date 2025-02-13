@@ -190,7 +190,7 @@ variable "route_table" {
 variable "network_plugin" {
   description = "The network plugin to use for networking. Possible values are azure and kubenet. Defaults to azure. When network_plugin is set to azure - the pod_cidr field must not be set, unless specifying network_plugin_mode to overlay."
   type        = string
-  default     = "azure"
+  default     = "none"
   validation {
     condition     = contains(["azure", "kubenet", "none"], var.network_plugin)
     error_message = "The network plugin is invalid."

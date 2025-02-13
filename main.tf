@@ -123,6 +123,8 @@ resource "azurerm_route_table" "this" {
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_route_table" {
+  count = var.network_plugin == "azure" ? 0 : 1
+
   subnet_id      = var.node_subnet
   route_table_id = azurerm_route_table.this.id
 
@@ -131,6 +133,8 @@ resource "azurerm_subnet_route_table_association" "subnet_route_table" {
 
 
 resource "azurerm_role_assignment" "aks_vnet_rbac" {
+  count = var.network_plugin == "azure" ? 0 : 1
+
   scope                = var.vnet_id
   role_definition_name = "Network Contributor"
   principal_id         = var.user_assigned_identity_id
