@@ -11,9 +11,9 @@ resource "azurerm_kubernetes_cluster" "this" {
   workload_identity_enabled = var.workload_identity_enabled
   oidc_issuer_enabled       = var.oidc_issuer_enabled
   azure_policy_enabled      = var.azure_policy_enabled
-  tags                      = var.tags
 
   node_resource_group = var.node_resource_group_name
+
   default_node_pool {
     name           = var.system_node_name
     vm_size        = var.system_node_vm_size
@@ -33,6 +33,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     os_disk_type                 = var.system_node_os_disk_type
     tags                         = var.tags
   }
+
   dynamic "linux_profile" {
     for_each = try(var.linux_profile, null) == null ? [] : [1]
     content {
@@ -45,6 +46,7 @@ resource "azurerm_kubernetes_cluster" "this" {
       }
     }
   }
+
   identity {
     type = "UserAssigned"
     # TODO
@@ -81,6 +83,13 @@ resource "azurerm_kubernetes_cluster" "this" {
       kubernetes_version
     ]
   }
+
+  tags = merge(
+    local.ccoe_tags,
+    tomap({
+      "Resource Type" = "Azure Kubernetes Service",
+    })
+  )
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "this" {
