@@ -51,7 +51,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   identity {
     type = "UserAssigned"
     # TODO
-    identity_ids = tolist([var.user_assigned_identity_id])
+    identity_ids = tolist([try(data.azurerm_user_assigned_identity.k8s.id, var.user_assigned_identity_id)])
     # identity_ids = var.aks_managed_identity
   }
 
@@ -136,7 +136,7 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
 
   scope                = var.vnet_id
   role_definition_name = "Network Contributor"
-  principal_id         = var.user_assigned_identity_id
+  principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 
   depends_on = [ azurerm_route_table.this ]
 }

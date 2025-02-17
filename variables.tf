@@ -533,3 +533,9 @@ variable "user_assigned_identity_id" {
   type        = string
   default     = null
 }
+
+variable "user_assigned_identity_name" {
+  description = "The Name of the User Assigned Identity that will be used by the AKS cluster. If not provided, a managed identity will be created."
+  type        = string
+  default     = null
+}
