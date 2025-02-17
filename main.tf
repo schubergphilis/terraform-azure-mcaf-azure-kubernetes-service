@@ -141,3 +141,10 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
   depends_on = [ azurerm_route_table.this ]
 }
 
+resource "azurerm_role_assignment" "aks_dns" {
+  count = var.network_plugin == "azure" ? 0 : 1
+
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Private DNS Zone Contributor"
+  principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
+}
