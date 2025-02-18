@@ -106,7 +106,7 @@ variable "system_node_pool" {
   })
   default = {
     name                           = "system"
-    vm_size                        = "Standard_D2s_v5"
+    vm_size                        = "Standard_B2s"
     temporary_name_for_rotation    = "system-temp"
     availability_zones             = ["1", "2", "3"]
     node_labels                    = {}
@@ -117,7 +117,7 @@ variable "system_node_pool" {
     max_pods                       = 250
     max_count                      = 3
     min_count                      = 1
-    count                          = 2
+    node_count                     = 2
     os_disk_type                   = "Managed"
     tags                           = {}
   }
@@ -155,7 +155,7 @@ variable "user_node_pool" {
     max_pods                    = optional(number, 250)
     max_count                   = optional(number, 3)
     min_count                   = optional(number, 1)
-    node_count                  = optional(number, 1)
+    node_count                  = optional(number, 2)
     os_disk_size_gb             = optional(number, 100)
     os_disk_type                = optional(string, "Ephemeral")
     os_type                     = optional(string, "Linux")
@@ -178,7 +178,7 @@ The user node pool configuration for the Kubernetes Cluster.
 - `max_pods` - The maximum number of pods that can run on each agent.
 - `max_count` - The maximum number of nodes which should exist within this Node Pool.
 - `min_count` - The minimum number of nodes which should exist within this Node Pool.
-- `node_count` - The initial number of nodes which should exist within this Node Pool.
+- `count` - The initial number of nodes which should exist within this Node Pool.
 - `os_disk_size_gb` - The size of the OS disk in GB.
 - `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Ephemeral.
 - `os_type` - The type of OS which should be used for the Operating System. Possible values are Linux and Windows. Defaults to Linux.
