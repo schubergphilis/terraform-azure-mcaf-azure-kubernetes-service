@@ -151,12 +151,12 @@ resource "azurerm_role_assignment" "aks_dns" {
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 }
 
-resource "azapi_update_resource" "encryptionathost" {
-  count = var.disk_encryption_set_id == null ? 0 : 1
+# resource "azapi_update_resource" "encryptionathost" {
+#   count = var.disk_encryption_set_id == null ? 0 : 1
 
-  type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01"
-  resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.ContainerService/EnableEncryptionAtHost"
-  body = {
-    properties = {}
-  }
-}
+#   type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01"
+#   resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.ContainerService/EnableEncryptionAtHost"
+#   body = {
+#     properties = {}
+#   }
+# }
