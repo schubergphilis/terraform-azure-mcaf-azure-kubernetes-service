@@ -267,6 +267,12 @@ variable "network_policy" {
   }
 }
 
+variable "disk_encryption_set_id" {
+  description = "(Optional) The ID of the Disk Encryption Set which should be used for this Kubernetes Cluster. Changing this forces a new resource to be created."
+  type        = string
+  default     = null
+}
+
 variable "load_balancer_sku" {
   description = "(Optional) The SKU of the Load Balancer which should be used for this Kubernetes Cluster. Possible values are standard and basic. Defaults to standard."
   type        = string
@@ -530,12 +536,6 @@ variable "location" {
 # ========================================
 variable "user_assigned_identity_id" {
   description = "The ID of the User Assigned Identity that will be used by the AKS cluster. If not provided, a managed identity will be created."
-  type        = string
-  default     = null
-}
-
-variable "user_assigned_identity_name" {
-  description = "The Name of the User Assigned Identity that will be used by the AKS cluster. If not provided, a managed identity will be created."
   type        = string
   default     = null
 }

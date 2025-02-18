@@ -11,6 +11,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   workload_identity_enabled = var.workload_identity_enabled
   oidc_issuer_enabled       = var.oidc_issuer_enabled
   azure_policy_enabled      = var.azure_policy_enabled
+  disk_encryption_set_id    = var.disk_encryption_set_id
   tags                      = var.tags
 
   node_resource_group = var.node_resource_group_name
@@ -130,7 +131,6 @@ resource "azurerm_subnet_route_table_association" "subnet_route_table" {
   depends_on = [ azurerm_route_table.this ]
 }
 
-
 resource "azurerm_role_assignment" "aks_vnet_rbac" {
   count = var.network_plugin == "azure" ? 0 : 1
 
@@ -144,7 +144,7 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
 resource "azurerm_role_assignment" "aks_dns" {
   count = var.network_plugin == "azure" ? 0 : 1
 
-  scope                = data.azurerm_subscription.current.id
+  scope                = var.private_dns_zone
   role_definition_name = "Private DNS Zone Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 }
