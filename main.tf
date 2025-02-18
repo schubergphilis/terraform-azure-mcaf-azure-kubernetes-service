@@ -155,7 +155,7 @@ resource "azapi_update_resource" "encryptionathost" {
   count = var.disk_encryption_set_id == null ? 0 : 1
 
   type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.ContainerService/EnableEncryptionAtHost"
+  resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.ContainerService/EnableEncryptionAtHost"
   body = {
     properties = {}
   }
