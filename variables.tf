@@ -166,7 +166,7 @@ The user node pool configuration for the Kubernetes Cluster.
 - `os_disk_size_gb` - The size of the OS disk in GB.
 - `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Ephemeral.
 - `os_type` - The type of OS which should be used for the Operating System. Possible values are Linux and Windows. Defaults to Linux.
-- `temporary_name_for_rotation` - The temporary name for the user node pool, during a roll over moment.
+- `temporary_name_for_rotation` - The temporary name for the user node pool, during a roll over moment, default is rotation, if not set.
 DESCRIPTION
 }
 

@@ -106,7 +106,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   node_taints                 = each.value.taints
   zones                       = each.value.availability_zones
   vnet_subnet_id              = var.node_subnet
-  pod_subnet_id               = try(var.network_plugin != "azure") ? var.node_subnet.id : null
+  pod_subnet_id               = try(var.network_plugin == "azure") ? var.node_subnet.id : null
   auto_scaling_enabled        = each.value.auto_scaling_enabled
   host_encryption_enabled     = each.value.host_encryption_enabled
   node_public_ip_enabled      = each.value.node_public_ip_enabled
