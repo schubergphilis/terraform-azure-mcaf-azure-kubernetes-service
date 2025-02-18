@@ -88,39 +88,23 @@ variable "azure_policy_enabled" {
 
 variable "system_node_pool" {
   type = object({
-    name                           = string
-    vm_size                        = string
-    temporary_name_for_rotation    = optional(string)
-    availability_zones             = optional(list(string))
-    node_labels                    = optional(map(any))
-    only_critical_addons_enabled   = optional(bool)
-    enable_auto_scaling            = optional(bool)
-    enable_host_encryption         = optional(bool)
-    enable_node_public_ip          = optional(bool)
-    max_pods                       = optional(number)
-    max_count                      = number
-    min_count                      = number
-    count                          = optional(number)
-    os_disk_type                   = optional(string)
-    tags                           = optional(map(string))
+    name                           = optional(string, "system")
+    vm_size                        = optional(string, "Standard_B2s")
+    temporary_name_for_rotation    = optional(string, "system-temp")
+    availability_zones             = optional(list(string), ["1", "2", "3"])
+    node_labels                    = optional(map(any), {})
+    only_critical_addons_enabled   = optional(bool, true)
+    enable_auto_scaling            = optional(bool, false)
+    enable_host_encryption         = optional(bool, true)
+    enable_node_public_ip          = optional(bool, false)
+    max_pods                       = optional(number, 250)
+    max_count                      = optional(number, 3)
+    min_count                      = optional(number, 1)
+    node_count                     = optional(number, 2)
+    os_disk_type                   = optional(string, "Managed")
+    tags                           = optional(map(string), {})
   })
-  default = {
-    name                           = "system"
-    vm_size                        = "Standard_B2s"
-    temporary_name_for_rotation    = "system-temp"
-    availability_zones             = ["1", "2", "3"]
-    node_labels                    = {}
-    only_critical_addons_enabled   = true
-    enable_auto_scaling            = false
-    enable_host_encryption         = true
-    enable_node_public_ip          = false
-    max_pods                       = 250
-    max_count                      = 3
-    min_count                      = 1
-    node_count                     = 2
-    os_disk_type                   = "Managed"
-    tags                           = {}
-  }
+  default = {}
   description = <<DESCRIPTION
 The default node pool configuration for the Kubernetes Cluster.
 
