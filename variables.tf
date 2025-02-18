@@ -36,7 +36,7 @@ variable "pod_subnet" {
 # ========================================
 variable "kubernetes_version" {
   type    = string
-  default = "1.28.9"
+  default = "1.31.5"
 }
 
 variable "network_proxy_disabled" {
@@ -97,6 +97,12 @@ variable "system_node_name" {
 variable "system_node_vm_size" {
   description = "Specifies the vm size of the default node pool"
   default     = "Standard_D2s_v5"
+  type        = string
+}
+
+variable "system_node_temporary_name_for_rotation" {
+  description = "Specifies the temporary name for the default node pool"
+  default     = null
   type        = string
 }
 
@@ -359,22 +365,23 @@ DESCRIPTION
 
 variable "user_node_pool" {
   type = map(object({
-    name                    = optional(string, null)
-    vm_size                 = optional(string, "Standard_D2s_v5")
-    mode                    = optional(string, "User")
-    labels                  = optional(map(any), {})
-    taints                  = optional(list(string), [])
-    availability_zones      = optional(list(string), ["1", "2", "3"])
-    auto_scaling_enabled    = optional(bool, false)
-    host_encryption_enabled = optional(bool, false)
-    node_public_ip_enabled  = optional(bool, false)
-    max_pods                = optional(number, 250)
-    max_count               = optional(number, 3)
-    min_count               = optional(number, 1)
-    node_count              = optional(number, 1)
-    os_disk_size_gb         = optional(number, 100)
-    os_disk_type            = optional(string, "Ephemeral")
-    os_type                 = optional(string, "Linux")
+    name                        = optional(string, null)
+    vm_size                     = optional(string, "Standard_D2s_v5")
+    mode                        = optional(string, "User")
+    labels                      = optional(map(any), {})
+    taints                      = optional(list(string), [])
+    availability_zones          = optional(list(string), ["1", "2", "3"])
+    auto_scaling_enabled        = optional(bool, false)
+    host_encryption_enabled     = optional(bool, false)
+    node_public_ip_enabled      = optional(bool, false)
+    max_pods                    = optional(number, 250)
+    max_count                   = optional(number, 3)
+    min_count                   = optional(number, 1)
+    node_count                  = optional(number, 1)
+    os_disk_size_gb             = optional(number, 100)
+    os_disk_type                = optional(string, "Ephemeral")
+    os_type                     = optional(string, "Linux")
+    temporary_name_for_rotation = optional(string, null)
   }))
   default  = {}
   nullable = false

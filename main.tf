@@ -33,6 +33,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     min_count                    = var.system_node_enable_auto_scaling == true ? var.system_node_min_count : null
     node_count                   = var.system_node_count
     os_disk_type                 = var.system_node_os_disk_type
+    temporary_name_for_rotation  = var.system_node_temporary_name_for_rotation
     tags                         = var.tags
   }
 
@@ -90,25 +91,26 @@ resource "azurerm_kubernetes_cluster" "this" {
 resource "azurerm_kubernetes_cluster_node_pool" "this" {
   for_each = var.user_node_pool == null ? {} : var.user_node_pool
 
-  kubernetes_cluster_id   = azurerm_kubernetes_cluster.this.id
-  name                    = each.value.name
-  vm_size                 = each.value.vm_size
-  mode                    = try(each.value.mode, "User")
-  node_labels             = each.value.labels
-  node_taints             = each.value.taints
-  zones                   = each.value.availability_zones
-  vnet_subnet_id          = var.node_subnet
-  pod_subnet_id           = try(var.network_plugin != "azure") ? var.node_subnet.id : null
-  auto_scaling_enabled    = each.value.auto_scaling_enabled
-  host_encryption_enabled = each.value.host_encryption_enabled
-  node_public_ip_enabled  = each.value.node_public_ip_enabled
-  max_pods                = each.value.max_pods
-  max_count               = each.value.max_count
-  min_count               = each.value.min_count
-  node_count              = each.value.node_count
-  os_disk_size_gb         = each.value.os_disk_size_gb
-  os_disk_type            = each.value.os_disk_type
-  os_type                 = each.value.os_type
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.this.id
+  name                        = each.value.name
+  vm_size                     = each.value.vm_size
+  mode                        = try(each.value.mode, "User")
+  node_labels                 = each.value.labels
+  node_taints                 = each.value.taints
+  zones                       = each.value.availability_zones
+  vnet_subnet_id              = var.node_subnet
+  pod_subnet_id               = try(var.network_plugin != "azure") ? var.node_subnet.id : null
+  auto_scaling_enabled        = each.value.auto_scaling_enabled
+  host_encryption_enabled     = each.value.host_encryption_enabled
+  node_public_ip_enabled      = each.value.node_public_ip_enabled
+  max_pods                    = each.value.max_pods
+  max_count                   = each.value.max_count
+  min_count                   = each.value.min_count
+  node_count                  = each.value.node_count
+  os_disk_size_gb             = each.value.os_disk_size_gb
+  os_disk_type                = each.value.os_disk_type
+  os_type                     = each.value.os_type
+  temporary_name_for_rotation = each.value.temporary_name_for_rotation
   tags                    = var.tags
 }
 
@@ -147,4 +149,14 @@ resource "azurerm_role_assignment" "aks_dns" {
   scope                = var.private_dns_zone
   role_definition_name = "Private DNS Zone Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
+}
+
+resource "azapi_update_resource" "encryptionathost" {
+  count = var.disk_encryption_set_id == null ? 0 : 1
+
+  type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.ContainerService/EnableEncryptionAtHost"
+  body = {
+    properties = {}
+  }
 }
