@@ -102,6 +102,9 @@ variable "system_node_pool" {
     min_count                      = optional(number, 1)
     node_count                     = optional(number, 2)
     os_disk_type                   = optional(string, "Managed")
+    os_disk_size_gb                = optional(number, null)
+    ultra_ssd_enabled              = optional(bool, false)
+    os_sku                         = optional(string, "Ubuntu")
     tags                           = optional(map(string), {})
   })
   default = {}
@@ -120,7 +123,9 @@ The default node pool configuration for the Kubernetes Cluster.
 - `max_pods` - The maximum number of pods that can run on each agent.
 - `max_count` - The maximum number of nodes which should exist within this Node Pool.
 - `min_count` - The minimum number of nodes which should exist within this Node Pool.
-- `count` - The initial number of nodes which should exist within this Node Pool.
+- `node_count` - The initial number of nodes which should exist within this Node Pool.
+- `os_disk_size_gb` - The size of the OS disk in GB.
+- `os_sku` - Specifies the OS SKU used by the agent pool. Possible values are AzureLinux, Ubuntu, Windows2019, and Windows2022. Defaults to Ubuntu if OSType=Linux or Windows2019 if OSType=Windows.
 - `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed.
 DESCRIPTION
 }
@@ -142,6 +147,7 @@ variable "user_node_pool" {
     node_count                  = optional(number, 2)
     os_disk_size_gb             = optional(number, 100)
     os_disk_type                = optional(string, "Ephemeral")
+    ultra_ssd_enabled           = optional(bool, false)
     os_type                     = optional(string, "Linux")
     os_sku                      = optional(string, "Ubuntu")
     temporary_name_for_rotation = optional(string, "rotation")

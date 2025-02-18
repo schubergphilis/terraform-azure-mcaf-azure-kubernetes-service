@@ -33,6 +33,9 @@ resource "azurerm_kubernetes_cluster" "this" {
     min_count                    = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.min_count : null
     node_count                   = var.system_node_pool.node_count
     os_disk_type                 = var.system_node_pool.os_disk_type
+    os_disk_size_gb              = var.system_node_pool.os_disk_size_gb
+    os_sku                       = var.system_node_pool.os_sku
+    ultra_ssd_enabled            = var.system_node_pool.ultra_ssd_enabled
     temporary_name_for_rotation  = var.system_node_pool.temporary_name_for_rotation
 
     tags = merge(
@@ -116,6 +119,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   node_count                  = each.value.node_count
   os_disk_size_gb             = each.value.os_disk_size_gb
   os_disk_type                = each.value.os_disk_type
+  ultra_ssd_enabled           = each.value.ultra_ssd_enabled
   os_type                     = each.value.os_type
   os_sku                      = each.value.os_sku
   temporary_name_for_rotation = each.value.temporary_name_for_rotation
