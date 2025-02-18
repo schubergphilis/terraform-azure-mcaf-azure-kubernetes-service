@@ -12,8 +12,6 @@ variable "routes" {
   default = null
 }
 
-
-
 variable "endpoint_subnet" {
   description = "The subnet for the api endpoint"
   type = string
@@ -88,90 +86,190 @@ variable "azure_policy_enabled" {
   default     = true
 }
 
-variable "system_node_name" {
-  description = "Specifies the name of the default node pool"
-  default     = "system"
-  type        = string
+variable "system_node_pool" {
+  type = object({
+    name                           = string
+    vm_size                        = string
+    temporary_name_for_rotation    = optional(string)
+    availability_zones             = optional(list(string))
+    node_labels                    = optional(map(any))
+    only_critical_addons_enabled   = optional(bool)
+    enable_auto_scaling            = optional(bool)
+    enable_host_encryption         = optional(bool)
+    enable_node_public_ip          = optional(bool)
+    max_pods                       = optional(number)
+    max_count                      = number
+    min_count                      = number
+    count                          = optional(number)
+    os_disk_type                   = optional(string)
+    tags                           = optional(map(string))
+  })
+  default = {
+    name                           = "system"
+    vm_size                        = "Standard_D2s_v5"
+    temporary_name_for_rotation    = "system-temp"
+    availability_zones             = ["1", "2", "3"]
+    node_labels                    = {}
+    only_critical_addons_enabled   = true
+    enable_auto_scaling            = false
+    enable_host_encryption         = true
+    enable_node_public_ip          = false
+    max_pods                       = 250
+    max_count                      = 3
+    min_count                      = 1
+    count                          = 2
+    os_disk_type                   = "Managed"
+    tags                           = {}
+  }
+  description = <<DESCRIPTION
+The default node pool configuration for the Kubernetes Cluster.
+
+- `name` - The name of the default node pool.
+- `vm_size` - The VM size of the default node pool.
+- `temporary_name_for_rotation` - The temporary name for the default node pool, during a roll over moment.
+- `availability_zones` - The availability zones of the default node pool.
+- `node_labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `only_critical_addons_enabled` - Enabling this option will taint default node pool with CriticalAddonsOnly=true:NoSchedule taint.
+- `enable_auto_scaling` - Whether to enable auto-scaler. Defaults to false.
+- `enable_host_encryption` - Should the nodes in this Node Pool have host encryption enabled? Defaults to false.
+- `enable_node_public_ip` - Should each node have a Public IP Address? Defaults to false.
+- `max_pods` - The maximum number of pods that can run on each agent.
+- `max_count` - The maximum number of nodes which should exist within this Node Pool.
+- `min_count` - The minimum number of nodes which should exist within this Node Pool.
+- `count` - The initial number of nodes which should exist within this Node Pool.
+- `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed.
+DESCRIPTION
 }
 
-variable "system_node_vm_size" {
-  description = "Specifies the vm size of the default node pool"
-  default     = "Standard_D2s_v5"
-  type        = string
+variable "user_node_pool" {
+  type = map(object({
+    name                        = optional(string, null)
+    vm_size                     = optional(string, "Standard_D2s_v5")
+    mode                        = optional(string, "User")
+    labels                      = optional(map(any), {})
+    taints                      = optional(list(string), [])
+    availability_zones          = optional(list(string), ["1", "2", "3"])
+    auto_scaling_enabled        = optional(bool, false)
+    host_encryption_enabled     = optional(bool, true)
+    node_public_ip_enabled      = optional(bool, false)
+    max_pods                    = optional(number, 250)
+    max_count                   = optional(number, 3)
+    min_count                   = optional(number, 1)
+    node_count                  = optional(number, 1)
+    os_disk_size_gb             = optional(number, 100)
+    os_disk_type                = optional(string, "Ephemeral")
+    os_type                     = optional(string, "Linux")
+    temporary_name_for_rotation = optional(string, null)
+    tags                        = optional(map(string), {})
+  }))
+  default  = {}
+  description = <<DESCRIPTION
+The user node pool configuration for the Kubernetes Cluster.
+
+- `name` - The name of the user node pool.
+- `vm_size` - The VM size of the user node pool.
+- `mode` - The mode of the user node pool.
+- `labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `taints` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `availability_zones` - The availability zones of the user node pool.
+- `auto_scaling_enabled` - Whether to enable auto-scaler. Defaults to false.
+- `host_encryption_enabled` - Should the nodes in this Node Pool have host encryption enabled? Defaults to false.
+- `node_public_ip_enabled` - Should each node have a Public IP Address? Defaults to false.
+- `max_pods` - The maximum number of pods that can run on each agent.
+- `max_count` - The maximum number of nodes which should exist within this Node Pool.
+- `min_count` - The minimum number of nodes which should exist within this Node Pool.
+- `node_count` - The initial number of nodes which should exist within this Node Pool.
+- `os_disk_size_gb` - The size of the OS disk in GB.
+- `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Ephemeral.
+- `os_type` - The type of OS which should be used for the Operating System. Possible values are Linux and Windows. Defaults to Linux.
+- `temporary_name_for_rotation` - The temporary name for the user node pool, during a roll over moment.
+DESCRIPTION
 }
 
-variable "system_node_temporary_name_for_rotation" {
-  description = "Specifies the temporary name for the default node pool"
-  default     = "system-temp"
-  type        = string
-}
+# variable "system_node_name" {
+#   description = "Specifies the name of the default node pool"
+#   default     = "system"
+#   type        = string
+# }
 
-variable "system_node_availability_zones" {
-  description = "Specifies the availability zones of the default node pool"
-  default     = ["1", "2", "3"]
-  type        = list(string)
-}
+# variable "system_node_vm_size" {
+#   description = "Specifies the vm size of the default node pool"
+#   default     = "Standard_D2s_v5"
+#   type        = string
+# }
 
-variable "system_node_node_labels" {
-  description = "(Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule). Changing this forces a new resource to be created."
-  type        = map(any)
-  default     = {}
-}
+# variable "system_node_temporary_name_for_rotation" {
+#   description = "Specifies the temporary name for the default node pool"
+#   default     = "system-temp"
+#   type        = string
+# }
 
-variable "only_critical_addons_enabled" {
-  description = "(Optional) Enabling this option will taint default node pool with CriticalAddonsOnly=true:NoSchedule taint. Changing this forces a new resource to be created."
-  type        = bool
-  default     = true
-}
+# variable "system_node_availability_zones" {
+#   description = "Specifies the availability zones of the default node pool"
+#   default     = ["1", "2", "3"]
+#   type        = list(string)
+# }
 
-variable "system_node_enable_auto_scaling" {
-  description = "(Optional) Whether to enable auto-scaler. Defaults to false."
-  type        = bool
-  default     = false
-}
+# variable "system_node_node_labels" {
+#   description = "(Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule). Changing this forces a new resource to be created."
+#   type        = map(any)
+#   default     = {}
+# }
 
-variable "system_node_enable_host_encryption" {
-  description = "(Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to false."
-  type        = bool
-  default     = true
-}
+# variable "only_critical_addons_enabled" {
+#   description = "(Optional) Enabling this option will taint default node pool with CriticalAddonsOnly=true:NoSchedule taint. Changing this forces a new resource to be created."
+#   type        = bool
+#   default     = true
+# }
 
-variable "system_node_enable_node_public_ip" {
-  description = "(Optional) Should each node have a Public IP Address? Defaults to false. Changing this forces a new resource to be created."
-  type        = bool
-  default     = false
-}
+# variable "system_node_enable_auto_scaling" {
+#   description = "(Optional) Whether to enable auto-scaler. Defaults to false."
+#   type        = bool
+#   default     = false
+# }
 
-variable "system_node_max_pods" {
-  description = "(Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created."
-  type        = number
-  default     = 250
-}
+# variable "system_node_enable_host_encryption" {
+#   description = "(Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to false."
+#   type        = bool
+#   default     = true
+# }
 
-variable "system_node_max_count" {
-  description = "(Required) The maximum number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be greater than or equal to min_count."
-  type        = number
-  default     = 3
-}
+# variable "system_node_enable_node_public_ip" {
+#   description = "(Optional) Should each node have a Public IP Address? Defaults to false. Changing this forces a new resource to be created."
+#   type        = bool
+#   default     = false
+# }
 
-variable "system_node_min_count" {
-  description = "(Required) The minimum number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be less than or equal to max_count."
-  type        = number
-  default     = 1
-}
+# variable "system_node_max_pods" {
+#   description = "(Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created."
+#   type        = number
+#   default     = 250
+# }
 
-variable "system_node_count" {
-  description = "(Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be a value in the range min_count - max_count."
-  type        = number
-  default     = 2
-}
+# variable "system_node_max_count" {
+#   description = "(Required) The maximum number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be greater than or equal to min_count."
+#   type        = number
+#   default     = 3
+# }
 
-# TODO: need to choose
-variable "system_node_os_disk_type" {
-  description = "(Optional) The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed. Changing this forces a new resource to be created."
-  type        = string
-  default     = "Managed"
-}
+# variable "system_node_min_count" {
+#   description = "(Required) The minimum number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be less than or equal to max_count."
+#   type        = number
+#   default     = 1
+# }
+
+# variable "system_node_count" {
+#   description = "(Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be a value in the range min_count - max_count."
+#   type        = number
+#   default     = 2
+# }
+
+# # TODO: need to choose
+# variable "system_node_os_disk_type" {
+#   description = "(Optional) The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed. Changing this forces a new resource to be created."
+#   type        = string
+#   default     = "Managed"
+# }
 
 variable "linux_profile" {
   description = "(Optional) The Linux Profile to use for the default node pool."
@@ -225,13 +323,13 @@ variable "dns_service_ip" {
 }
 
 variable "outbound_type" {
-  description = "(Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are loadBalancer, userDefinedRouting, managedNATGateway and userAssignedNATGateway. Defaults to loadBalancer. Defaults to loadBalancer."
+  description = "(Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are loadBalancer, userDefinedRouting, managedNATGateway and userAssignedNATGateway. Defaults to loadBalancer."
   type        = string
   default     = "userDefinedRouting"
 
   validation {
     condition     = contains(["loadBalancer", "userDefinedRouting", "managedNATGateway", "userAssignedNATGateway"], var.outbound_type)
-    error_message = "The outbound type is invalid."
+    error_message = "The outbound type is invalid. Valid values are: 'loadBalancer', 'userDefinedRouting', 'managedNATGateway', 'userAssignedNATGateway'."
   }
 }
 
@@ -361,30 +459,6 @@ DESCRIPTION
     )
     error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
   }
-}
-
-variable "user_node_pool" {
-  type = map(object({
-    name                        = optional(string, null)
-    vm_size                     = optional(string, "Standard_D2s_v5")
-    mode                        = optional(string, "User")
-    labels                      = optional(map(any), {})
-    taints                      = optional(list(string), [])
-    availability_zones          = optional(list(string), ["1", "2", "3"])
-    auto_scaling_enabled        = optional(bool, false)
-    host_encryption_enabled     = optional(bool, false)
-    node_public_ip_enabled      = optional(bool, false)
-    max_pods                    = optional(number, 250)
-    max_count                   = optional(number, 3)
-    min_count                   = optional(number, 1)
-    node_count                  = optional(number, 1)
-    os_disk_size_gb             = optional(number, 100)
-    os_disk_type                = optional(string, "Ephemeral")
-    os_type                     = optional(string, "Linux")
-    temporary_name_for_rotation = optional(string, null)
-  }))
-  default  = {}
-  nullable = false
 }
 
 # ========================================

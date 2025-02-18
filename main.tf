@@ -17,24 +17,31 @@ resource "azurerm_kubernetes_cluster" "this" {
   node_resource_group = var.node_resource_group_name
 
   default_node_pool {
-    name           = var.system_node_name
-    vm_size        = var.system_node_vm_size
+    name           = var.system_node_pool.name
+    vm_size        = var.system_node_pool.vm_size
     vnet_subnet_id = var.node_subnet
     pod_subnet_id  = try(var.network_plugin == "azure") ? var.pod_subnet : null
 
-    zones                        = var.system_node_availability_zones
-    node_labels                  = var.system_node_node_labels
-    only_critical_addons_enabled = var.only_critical_addons_enabled
-    auto_scaling_enabled         = var.system_node_enable_auto_scaling
-    host_encryption_enabled      = var.system_node_enable_host_encryption
-    node_public_ip_enabled       = var.system_node_enable_node_public_ip
-    max_pods                     = var.system_node_max_pods
-    max_count                    = var.system_node_enable_auto_scaling == true ? var.system_node_max_count : null
-    min_count                    = var.system_node_enable_auto_scaling == true ? var.system_node_min_count : null
-    node_count                   = var.system_node_count
-    os_disk_type                 = var.system_node_os_disk_type
-    temporary_name_for_rotation  = var.system_node_temporary_name_for_rotation
-    tags                         = var.tags
+    zones                        = var.system_node_pool.availability_zones
+    node_labels                  = var.system_node_pool.node_labels
+    only_critical_addons_enabled = var.system_node_pool.only_critical_addons_enabled
+    auto_scaling_enabled         = var.system_node_pool.enable_auto_scaling
+    host_encryption_enabled      = var.system_node_pool.enable_host_encryption
+    node_public_ip_enabled       = var.system_node_pool.enable_node_public_ip
+    max_pods                     = var.system_node_pool.max_pods
+    max_count                    = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.max_count : null
+    min_count                    = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.min_count : null
+    node_count                   = var.system_node_pool.node_count
+    os_disk_type                 = var.system_node_pool.os_disk_type
+    temporary_name_for_rotation  = var.system_node_pool.temporary_name_for_rotation
+
+    tags = merge(
+      try(var.tags),
+      try(var.system_node_pool.tags),
+      tomap({
+        "Resource Type" = "Kubernetes System Node"
+      })
+    )
   }
 
   dynamic "linux_profile" {
@@ -111,7 +118,14 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   os_disk_type                = each.value.os_disk_type
   os_type                     = each.value.os_type
   temporary_name_for_rotation = each.value.temporary_name_for_rotation
-  tags                    = var.tags
+
+  tags = merge(
+    try(var.tags),
+    try(each.value.tags),
+    tomap({
+      "Resource Type" = "Kubernetes User Node"
+    })
+  )
 }
 
 resource "azurerm_route_table" "this" {
