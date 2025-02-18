@@ -105,18 +105,19 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   node_labels                 = each.value.labels
   node_taints                 = each.value.taints
   zones                       = each.value.availability_zones
-  vnet_subnet_id              = var.node_subnet
+  vnet_subnet_id              = try(each.value.node_subnet_id, var.node_subnet)
   pod_subnet_id               = try(var.network_plugin == "azure") ? var.node_subnet.id : null
   auto_scaling_enabled        = each.value.auto_scaling_enabled
   host_encryption_enabled     = each.value.host_encryption_enabled
   node_public_ip_enabled      = each.value.node_public_ip_enabled
   max_pods                    = each.value.max_pods
-  max_count                   = each.value.max_count
-  min_count                   = each.value.min_count
+  max_count                   = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.max_count : null
+  min_count                   = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.min_count : null
   node_count                  = each.value.node_count
   os_disk_size_gb             = each.value.os_disk_size_gb
   os_disk_type                = each.value.os_disk_type
   os_type                     = each.value.os_type
+  os_sku                      = each.value.os_sku
   temporary_name_for_rotation = each.value.temporary_name_for_rotation
 
   tags = merge(

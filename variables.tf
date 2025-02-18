@@ -143,7 +143,10 @@ variable "user_node_pool" {
     os_disk_size_gb             = optional(number, 100)
     os_disk_type                = optional(string, "Ephemeral")
     os_type                     = optional(string, "Linux")
+    os_sku                      = optional(string, "Ubuntu")
     temporary_name_for_rotation = optional(string, "rotation")
+    pod_subnet_id               = optional(string, null)
+    vnet_subnet_id              = optional(string, null)
     tags                        = optional(map(string), {})
   }))
   default  = {}
@@ -166,7 +169,11 @@ The user node pool configuration for the Kubernetes Cluster.
 - `os_disk_size_gb` - The size of the OS disk in GB.
 - `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Ephemeral.
 - `os_type` - The type of OS which should be used for the Operating System. Possible values are Linux and Windows. Defaults to Linux.
+- `os_sku` - Specifies the OS SKU used by the agent pool. Possible values are AzureLinux, Ubuntu, Windows2019, and Windows2022. Defaults to Ubuntu if OSType=Linux or Windows2019 if OSType=Windows.
 - `temporary_name_for_rotation` - The temporary name for the user node pool, during a roll over moment, default is rotation, if not set.
+- `pod_subnet_id` - The subnet for the k8s pods when using azure cni.
+- `vnet_subnet_id` - The subnet for the k8s nodes.
+- `tags` - A map of tags to assign to the resource.
 DESCRIPTION
 }
 
