@@ -90,7 +90,7 @@ variable "system_node_pool" {
   type = object({
     name                           = optional(string, "system")
     vm_size                        = optional(string, "Standard_B2s")
-    temporary_name_for_rotation    = optional(string, "system-temp")
+    temporary_name_for_rotation    = optional(string, "rotation")
     availability_zones             = optional(list(string), ["1", "2", "3"])
     node_labels                    = optional(map(any), {})
     only_critical_addons_enabled   = optional(bool, true)
@@ -143,7 +143,7 @@ variable "user_node_pool" {
     os_disk_size_gb             = optional(number, 100)
     os_disk_type                = optional(string, "Ephemeral")
     os_type                     = optional(string, "Linux")
-    temporary_name_for_rotation = optional(string, null)
+    temporary_name_for_rotation = optional(string, "rotation")
     tags                        = optional(map(string), {})
   }))
   default  = {}
