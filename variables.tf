@@ -102,7 +102,7 @@ variable "system_node_vm_size" {
 
 variable "system_node_temporary_name_for_rotation" {
   description = "Specifies the temporary name for the default node pool"
-  default     = null
+  default     = "system-temp"
   type        = string
 }
 
@@ -133,7 +133,7 @@ variable "system_node_enable_auto_scaling" {
 variable "system_node_enable_host_encryption" {
   description = "(Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to false."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "system_node_enable_node_public_ip" {
