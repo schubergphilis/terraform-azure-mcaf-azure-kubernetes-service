@@ -145,7 +145,7 @@ variable "user_node_pool" {
     max_count                   = optional(number, 3)
     min_count                   = optional(number, 1)
     node_count                  = optional(number, 2)
-    os_disk_size_gb             = optional(number, 100)
+    os_disk_size_gb             = optional(number, null)
     os_disk_type                = optional(string, "Ephemeral")
     ultra_ssd_enabled           = optional(bool, false)
     os_type                     = optional(string, "Linux")
@@ -182,84 +182,6 @@ The user node pool configuration for the Kubernetes Cluster.
 - `tags` - A map of tags to assign to the resource.
 DESCRIPTION
 }
-
-# variable "system_node_name" {
-#   description = "Specifies the name of the default node pool"
-#   default     = "system"
-#   type        = string
-# }
-
-# variable "system_node_vm_size" {
-#   description = "Specifies the vm size of the default node pool"
-#   default     = "Standard_D2s_v5"
-#   type        = string
-# }
-
-# variable "system_node_temporary_name_for_rotation" {
-#   description = "Specifies the temporary name for the default node pool"
-#   default     = "system-temp"
-#   type        = string
-# }
-
-# variable "system_node_availability_zones" {
-#   description = "Specifies the availability zones of the default node pool"
-#   default     = ["1", "2", "3"]
-#   type        = list(string)
-# }
-
-# variable "system_node_node_labels" {
-#   description = "(Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule). Changing this forces a new resource to be created."
-#   type        = map(any)
-#   default     = {}
-# }
-
-# variable "only_critical_addons_enabled" {
-#   description = "(Optional) Enabling this option will taint default node pool with CriticalAddonsOnly=true:NoSchedule taint. Changing this forces a new resource to be created."
-#   type        = bool
-#   default     = true
-# }
-
-# variable "system_node_enable_auto_scaling" {
-#   description = "(Optional) Whether to enable auto-scaler. Defaults to false."
-#   type        = bool
-#   default     = false
-# }
-
-# variable "system_node_enable_host_encryption" {
-#   description = "(Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to false."
-#   type        = bool
-#   default     = true
-# }
-
-# variable "system_node_enable_node_public_ip" {
-#   description = "(Optional) Should each node have a Public IP Address? Defaults to false. Changing this forces a new resource to be created."
-#   type        = bool
-#   default     = false
-# }
-
-# variable "system_node_max_pods" {
-#   description = "(Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created."
-#   type        = number
-#   default     = 250
-# }
-
-# variable "system_node_max_count" {
-#   description = "(Required) The maximum number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be greater than or equal to min_count."
-#   type        = number
-#   default     = 3
-# }
-
-# variable "system_node_min_count" {
-#   description = "(Required) The minimum number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be less than or equal to max_count."
-#   type        = number
-#   default     = 1
-# }
-
-# variable "system_node_count" {
-#   description = "(Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between 0 and 1000 and must be a value in the range min_count - max_count."
-#   type        = number
-#   default     = 2
-# }
 
 # # TODO: need to choose
 # variable "system_node_os_disk_type" {
@@ -406,12 +328,6 @@ variable "vertical_pod_autoscaler_enabled" {
   description = "(Optional) Should Vertical Pod Autoscaler be enabled for this Kubernetes Cluster? Defaults to false."
   type        = bool
   default     = false
-}
-
-variable "aks_cluster_administrators" {
-  description = "(Optional) A list of Object IDs of Azure Active Directory Users/Groups which should have Admin Role on the Cluster."
-  type        = list(string)
-  default     = []
 }
 
 variable "diagnostic_settings" {
@@ -614,6 +530,12 @@ variable "location" {
 # ========================================
 variable "user_assigned_identity_id" {
   description = "The ID of the User Assigned Identity that will be used by the AKS cluster. If not provided, a managed identity will be created."
+  type        = string
+  default     = null
+}
+
+variable "kubelet_user_assigned_identity_id" {
+  description = "The ID of the User Assigned Identity that will be used by the kubelet."
   type        = string
   default     = null
 }
