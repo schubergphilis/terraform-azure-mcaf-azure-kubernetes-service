@@ -7,6 +7,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   private_cluster_enabled   = var.private_cluster_enabled
   private_dns_zone_id       = var.private_cluster_enabled == true ? var.private_dns_zone : null
   automatic_upgrade_channel = var.automatic_upgrade_channel
+  image_cleaner_enabled     = var.image_cleaner_enabled
   sku_tier                  = var.sku_tier
   workload_identity_enabled = var.workload_identity_enabled
   oidc_issuer_enabled       = var.oidc_issuer_enabled
@@ -38,6 +39,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     ultra_ssd_enabled            = var.system_node_pool.ultra_ssd_enabled
     temporary_name_for_rotation  = var.system_node_pool.temporary_name_for_rotation
 
+    upgrade_settings {
+      max_surge                     = var.system_node_pool.upgrade_settings.max_surge
+      drain_timeout_in_minutes      = var.system_node_pool.upgrade_settings.drain_timeout_in_minutes
+      node_soak_duration_in_minutes = var.system_node_pool.upgrade_settings.node_soak_duration_in_minutes
+    }
+
     tags = merge(
       try(var.tags),
       try(var.system_node_pool.tags),
@@ -45,6 +52,16 @@ resource "azurerm_kubernetes_cluster" "this" {
         "Resource Type" = "Kubernetes System Node"
       })
     )
+  }
+
+  dynamic "kubelet_identity" {
+    for_each = var.kubelet_user_assigned_identity_id != null ? [var.kubelet_user_assigned_identity_id] : []
+
+    content {
+      client_id                 = kubelet_identity.value.client_id
+      object_id                 = kubelet_identity.value.object_id
+      user_assigned_identity_id = kubelet_identity.value.user_assigned_identity_id
+    }
   }
 
   dynamic "linux_profile" {
@@ -63,9 +80,10 @@ resource "azurerm_kubernetes_cluster" "this" {
   identity {
     type = "UserAssigned"
     # TODO
-    identity_ids = tolist([try(data.azurerm_user_assigned_identity.k8s.id, var.user_assigned_identity_id)])
+    identity_ids = tolist([try(var.control_plane_user_assigned_identity_id)])
     # identity_ids = var.aks_managed_identity
   }
+
 
   network_profile {
     dns_service_ip      = var.dns_service_ip

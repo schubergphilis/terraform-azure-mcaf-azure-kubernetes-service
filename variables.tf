@@ -37,6 +37,12 @@ variable "kubernetes_version" {
   default = "1.31.5"
 }
 
+variable "image_cleaner_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether or not the image cleaner is enabled for the Kubernetes cluster."
+}
+
 variable "network_proxy_disabled" {
   description = "Should the Kubernetes Cluster have the kube-proxy disabled? Defaults to false."
   type        = bool
@@ -105,6 +111,11 @@ variable "system_node_pool" {
     os_disk_size_gb                = optional(number, null)
     ultra_ssd_enabled              = optional(bool, false)
     os_sku                         = optional(string, "Ubuntu")
+    upgrade_settings               = optional(object({
+      max_surge                     = optional(string)
+      drain_timeout_in_minutes      = optional(number)
+      node_soak_duration_in_minutes = optional(number)
+    }))
     tags                           = optional(map(string), {})
   })
   default = {}
@@ -528,14 +539,18 @@ variable "location" {
 # ========================================
 # Identity Configuration
 # ========================================
-variable "user_assigned_identity_id" {
+variable "control_plane_user_assigned_identity_id" {
   description = "The ID of the User Assigned Identity that will be used by the AKS cluster. If not provided, a managed identity will be created."
   type        = string
   default     = null
 }
 
 variable "kubelet_user_assigned_identity_id" {
-  description = "The ID of the User Assigned Identity that will be used by the kubelet."
-  type        = string
+  type = object({
+    client_id                 = optional(string)
+    object_id                 = optional(string)
+    user_assigned_identity_id = optional(string)
+  })
   default     = null
+  description = "The kubelet identity for the Kubernetes cluster."
 }
