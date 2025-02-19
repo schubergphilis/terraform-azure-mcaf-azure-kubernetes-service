@@ -111,11 +111,11 @@ variable "system_node_pool" {
     os_disk_size_gb                = optional(number, null)
     ultra_ssd_enabled              = optional(bool, false)
     os_sku                         = optional(string, "Ubuntu")
-    upgrade_settings               = optional(object({
+    upgrade_settings               = object({
       max_surge                     = optional(string, "10%")
       drain_timeout_in_minutes      = optional(number, 0)
       node_soak_duration_in_minutes = optional(number, 0)
-    }))
+    })
     tags                           = optional(map(string), {})
   })
   default = {}
