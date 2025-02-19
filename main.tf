@@ -40,7 +40,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     temporary_name_for_rotation  = var.system_node_pool.temporary_name_for_rotation
 
     upgrade_settings {
-      max_surge                     = var.system_node_pool.upgrade_settings.max_surge
+      max_surge                     = coalesce(var.system_node_pool.upgrade_settings.max_surge, "10%")
       drain_timeout_in_minutes      = var.system_node_pool.upgrade_settings.drain_timeout_in_minutes
       node_soak_duration_in_minutes = var.system_node_pool.upgrade_settings.node_soak_duration_in_minutes
     }
