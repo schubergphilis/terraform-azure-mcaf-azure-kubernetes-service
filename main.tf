@@ -142,11 +142,15 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   os_sku                      = each.value.os_sku
   temporary_name_for_rotation = each.value.temporary_name_for_rotation
 
-  # upgrade_settings {
-  #   max_surge                     = each.value.upgrade_settings.max_surge
-  #   drain_timeout_in_minutes      = each.value.upgrade_settings.drain_timeout_in_minutes
-  #   node_soak_duration_in_minutes = each.value.upgrade_settings.node_soak_duration_in_minutes
-  # }
+  dynamic "upgrade_settings" {
+    for_each = each.value.upgrade_settings != null ? [each.value.upgrade_settings] : []
+
+    content {
+      max_surge                     = upgrade_settings.value.max_surge
+      drain_timeout_in_minutes      = upgrade_settings.value.node_soak_duration_in_minutes
+      node_soak_duration_in_minutes = upgrade_settings.value.node_soak_duration_in_minutes
+    }
+  }
 
   tags = merge(
     try(var.tags),
