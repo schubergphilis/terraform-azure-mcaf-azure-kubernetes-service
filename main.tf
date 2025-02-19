@@ -39,10 +39,14 @@ resource "azurerm_kubernetes_cluster" "this" {
     ultra_ssd_enabled            = var.system_node_pool.ultra_ssd_enabled
     temporary_name_for_rotation  = var.system_node_pool.temporary_name_for_rotation
 
-    upgrade_settings {
-      max_surge                     = var.system_node_pool.upgrade_settings.max_surge
-      drain_timeout_in_minutes      = var.system_node_pool.upgrade_settings.drain_timeout_in_minutes
-      node_soak_duration_in_minutes = var.system_node_pool.upgrade_settings.node_soak_duration_in_minutes
+    dynamic "upgrade_settings" {
+      for_each = var.system_node_pool.upgrade_settings != null ? [var.system_node_pool.upgrade_settings] : []
+
+      content {
+        max_surge                     = upgrade_settings.value.max_surge
+        drain_timeout_in_minutes      = upgrade_settings.value.node_soak_duration_in_minutes
+        node_soak_duration_in_minutes = upgrade_settings.value.node_soak_duration_in_minutes
+      }
     }
 
     tags = merge(
@@ -141,6 +145,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   os_type                     = each.value.os_type
   os_sku                      = each.value.os_sku
   temporary_name_for_rotation = each.value.temporary_name_for_rotation
+
+  # upgrade_settings {
+  #   max_surge                     = each.value.upgrade_settings.max_surge
+  #   drain_timeout_in_minutes      = each.value.upgrade_settings.drain_timeout_in_minutes
+  #   node_soak_duration_in_minutes = each.value.upgrade_settings.node_soak_duration_in_minutes
+  # }
 
   tags = merge(
     try(var.tags),

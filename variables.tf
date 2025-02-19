@@ -111,10 +111,10 @@ variable "system_node_pool" {
     os_disk_size_gb                = optional(number, null)
     ultra_ssd_enabled              = optional(bool, false)
     os_sku                         = optional(string, "Ubuntu")
-    upgrade_settings               = optional(object({
-      max_surge                     = optional(string)
+    upgrade_settings = optional(object({
       drain_timeout_in_minutes      = optional(number)
       node_soak_duration_in_minutes = optional(number)
+      max_surge                     = string
     }))
     tags                           = optional(map(string), {})
   })
@@ -164,6 +164,11 @@ variable "user_node_pool" {
     temporary_name_for_rotation = optional(string, "rotation")
     pod_subnet_id               = optional(string, null)
     vnet_subnet_id              = optional(string, null)
+    upgrade_settings = optional(object({
+      drain_timeout_in_minutes      = optional(number)
+      node_soak_duration_in_minutes = optional(number)
+      max_surge                     = string
+    }))
     tags                        = optional(map(string), {})
   }))
   default  = {}
