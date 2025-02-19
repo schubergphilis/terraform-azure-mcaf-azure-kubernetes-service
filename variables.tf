@@ -150,6 +150,11 @@ The default node pool configuration for the Kubernetes Cluster.
   - `node_soak_duration_in_minutes` - The maximum amount of time to wait for a node to soak after draining during an upgrade, default is 0.
 - `tags` - A map of tags to assign to the resource.
 DESCRIPTION
+
+validation {
+  condition     = can(regex("^([a-z][a-z0-9]{0,11})$"), var.system_node_pool.temporary_name_for_rotation)
+  error_message = "The temporary_name_for_rotation must begin with a lowercase letter, contain only lowercase letters and numbers, and be between 1 and 12 characters in length."
+}
 }
 
 variable "user_node_pool" {
