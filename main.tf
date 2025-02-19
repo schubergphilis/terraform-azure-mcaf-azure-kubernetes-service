@@ -39,14 +39,10 @@ resource "azurerm_kubernetes_cluster" "this" {
     ultra_ssd_enabled            = var.system_node_pool.ultra_ssd_enabled
     temporary_name_for_rotation  = var.system_node_pool.temporary_name_for_rotation
 
-    dynamic "upgrade_settings" {
-      for_each = var.system_node_pool.upgrade_settings != null ? [var.system_node_pool.upgrade_settings] : []
-
-      content {
-        max_surge                     = upgrade_settings.value.max_surge
-        drain_timeout_in_minutes      = upgrade_settings.value.node_soak_duration_in_minutes
-        node_soak_duration_in_minutes = upgrade_settings.value.node_soak_duration_in_minutes
-      }
+    upgrade_settings {
+      max_surge                     = var.system_node_pool.upgrade_settings.max_surge
+      drain_timeout_in_minutes      = var.system_node_pool.upgrade_settings.drain_timeout_in_minutes
+      node_soak_duration_in_minutes = var.system_node_pool.upgrade_settings.node_soak_duration_in_minutes
     }
 
     tags = merge(

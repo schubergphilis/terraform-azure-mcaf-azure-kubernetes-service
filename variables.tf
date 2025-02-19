@@ -111,10 +111,10 @@ variable "system_node_pool" {
     os_disk_size_gb                = optional(number, null)
     ultra_ssd_enabled              = optional(bool, false)
     os_sku                         = optional(string, "Ubuntu")
-    upgrade_settings = optional(object({
-      drain_timeout_in_minutes      = optional(number)
-      node_soak_duration_in_minutes = optional(number)
-      max_surge                     = string
+    upgrade_settings               = optional(object({
+      max_surge                     = optional(string, "10%")
+      drain_timeout_in_minutes      = optional(number, 0)
+      node_soak_duration_in_minutes = optional(number, 0)
     }))
     tags                           = optional(map(string), {})
   })
@@ -135,9 +135,14 @@ The default node pool configuration for the Kubernetes Cluster.
 - `max_count` - The maximum number of nodes which should exist within this Node Pool.
 - `min_count` - The minimum number of nodes which should exist within this Node Pool.
 - `node_count` - The initial number of nodes which should exist within this Node Pool.
+- `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed.
 - `os_disk_size_gb` - The size of the OS disk in GB.
 - `os_sku` - Specifies the OS SKU used by the agent pool. Possible values are AzureLinux, Ubuntu, Windows2019, and Windows2022. Defaults to Ubuntu if OSType=Linux or Windows2019 if OSType=Windows.
-- `os_disk_type` - The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed.
+- `upgrade_settings` - The upgrade settings for the default node pool.
+  - `max_surge` - The maximum number of nodes that can be added during an upgrade, as a percentage of the total number of nodes, default is 10%.
+  - `drain_timeout_in_minutes` - The maximum amount of time to wait for a node to drain during an upgrade, default is 0.
+  - `node_soak_duration_in_minutes` - The maximum amount of time to wait for a node to soak after draining during an upgrade, default is 0.
+- `tags` - A map of tags to assign to the resource.
 DESCRIPTION
 }
 
