@@ -157,7 +157,7 @@ variable "user_node_pool" {
     min_count                   = optional(number, 1)
     node_count                  = optional(number, 2)
     os_disk_size_gb             = optional(number, null)
-    os_disk_type                = optional(string, "Ephemeral")
+    os_disk_type                = optional(string, "Managed")
     ultra_ssd_enabled           = optional(bool, false)
     os_type                     = optional(string, "Linux")
     os_sku                      = optional(string, "Ubuntu")
