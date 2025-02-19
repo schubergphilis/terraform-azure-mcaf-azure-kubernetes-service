@@ -112,13 +112,19 @@ variable "system_node_pool" {
     ultra_ssd_enabled              = optional(bool, false)
     os_sku                         = optional(string, "Ubuntu")
     upgrade_settings               = optional(object({
-      max_surge                     = optional(string, "10%")
-      drain_timeout_in_minutes      = optional(number, 0)
-      node_soak_duration_in_minutes = optional(number, 0)
+      max_surge                     = optional(string)
+      drain_timeout_in_minutes      = optional(number)
+      node_soak_duration_in_minutes = optional(number)
     }))
     tags                           = optional(map(string), {})
   })
-  default = {}
+  default = {
+    upgrade_settings = {
+      drain_timeout_in_minutes = 0
+      max_surge               = "10%"
+      node_soak_duration_in_minutes = 0
+    }
+  }
   description = <<DESCRIPTION
 The default node pool configuration for the Kubernetes Cluster.
 
