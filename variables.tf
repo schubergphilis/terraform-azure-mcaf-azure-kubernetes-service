@@ -96,7 +96,7 @@ variable "system_node_pool" {
   type = object({
     name                           = optional(string, "system")
     vm_size                        = optional(string, "Standard_B2s")
-    temporary_name_for_rotation    = optional(string, "rotation")
+    temporary_name_for_rotation    = optional(string, "rotationsystem")
     availability_zones             = optional(list(string), ["1", "2", "3"])
     node_labels                    = optional(map(any), {})
     only_critical_addons_enabled   = optional(bool, true)
@@ -110,7 +110,7 @@ variable "system_node_pool" {
     os_disk_type                   = optional(string, "Managed")
     os_disk_size_gb                = optional(number, null)
     ultra_ssd_enabled              = optional(bool, false)
-    os_sku                         = optional(string, "Ubuntu")
+    os_sku                         = optional(string)
     upgrade_settings               = optional(object({
       max_surge                     = optional(string)
       drain_timeout_in_minutes      = optional(number)
@@ -170,9 +170,9 @@ variable "user_node_pool" {
     os_disk_size_gb             = optional(number, null)
     os_disk_type                = optional(string, "Managed")
     ultra_ssd_enabled           = optional(bool, false)
-    os_type                     = optional(string, "Linux")
-    os_sku                      = optional(string, "Ubuntu")
-    temporary_name_for_rotation = optional(string, "rotation")
+    os_type                     = optional(string)
+    os_sku                      = optional(string)
+    temporary_name_for_rotation = optional(string, "rotationuser")
     pod_subnet_id               = optional(string, null)
     vnet_subnet_id              = optional(string, null)
     upgrade_settings = optional(object({
