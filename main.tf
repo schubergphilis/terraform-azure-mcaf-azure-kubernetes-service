@@ -181,8 +181,17 @@ resource "azurerm_route" "internet" {
   name                = "internet"
   resource_group_name = var.resource_group_name
   route_table_name    = azurerm_route_table.this.name
-  address_prefix      = "0.0.0.0/0"
+  address_prefix      = var.route_table.address_prefix
   next_hop_type       = "VirtualAppliance"
+  next_hop_in_ip_address = var.route_table.next_hop_in_ip_address
+
+  lifecycle {
+    precondition {
+      # This route should only be created if the next_hop_in_ip_address is set
+      condition     = var.route_table.next_hop_in_ip_address != null
+      error_message = "Route must have a next_hop_in_ip_address set, probably your azure firewall ip."
+    }
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_route_table" {

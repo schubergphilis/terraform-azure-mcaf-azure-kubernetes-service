@@ -238,6 +238,8 @@ variable "route_table" {
   type = object({
     name = optional(string, "aks-rt")
     bgp_route_propagation_enabled = optional(bool, false)
+    next_hop_in_ip_address = optional(string)
+    address_prefix = optional(string, "0.0.0.0/0")
   })
   default = {}
 }
