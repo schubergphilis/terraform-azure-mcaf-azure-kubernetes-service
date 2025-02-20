@@ -180,7 +180,7 @@ resource "azurerm_route" "internet" {
 
   name                = "internet"
   resource_group_name = var.resource_group_name
-  route_table_name    = azurerm_route_table.this.name
+  route_table_name    = azurerm_route_table.this[0].name
   address_prefix      = var.route_table.address_prefix
   next_hop_type       = "VirtualAppliance"
   next_hop_in_ip_address = var.route_table.next_hop_in_ip_address
