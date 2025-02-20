@@ -104,9 +104,13 @@ resource "azurerm_kubernetes_cluster" "this" {
     azure_rbac_enabled     = var.azure_rbac_enabled
   }
 
-  workload_autoscaler_profile {
-    keda_enabled                    = var.keda_enabled
-    vertical_pod_autoscaler_enabled = var.vertical_pod_autoscaler_enabled
+  dynamic "workload_autoscaler_profile" {
+    for_each = var.keda_enabled ? [1] : []
+
+    content {
+      keda_enabled                    = var.keda_enabled
+      vertical_pod_autoscaler_enabled = var.vertical_pod_autoscaler_enabled
+    }
   }
 
   lifecycle {
@@ -187,7 +191,7 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
   role_definition_name = "Network Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 
-  depends_on = [ azurerm_route_table.this ]
+  #depends_on = [ azurerm_route_table.this ]
 }
 
 resource "azurerm_role_assignment" "aks_dns" {
@@ -197,13 +201,3 @@ resource "azurerm_role_assignment" "aks_dns" {
   role_definition_name = "Private DNS Zone Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 }
-
-# resource "azapi_update_resource" "encryptionathost" {
-#   count = var.disk_encryption_set_id == null ? 0 : 1
-
-#   type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01"
-#   resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.ContainerService/EnableEncryptionAtHost"
-#   body = {
-#     properties = {}
-#   }
-# }

@@ -11,3 +11,7 @@ terraform {
     }
   }
 }
+
+provider "azapi" {
+  skip_provider_registration = false
+}
