@@ -105,11 +105,11 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   dynamic "workload_autoscaler_profile" {
-    for_each = var.keda_enabled ? [1] : []
+    for_each = var.workload_autoscaler_profile != null ? [var.workload_autoscaler_profile] : []
 
     content {
-      keda_enabled                    = var.keda_enabled
-      vertical_pod_autoscaler_enabled = var.vertical_pod_autoscaler_enabled
+      keda_enabled                    = workload_autoscaler_profile.value.keda_enabled
+      vertical_pod_autoscaler_enabled = workload_autoscaler_profile.value.vertical_pod_autoscaler_enabled
     }
   }
 
@@ -166,7 +166,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
 }
 
 resource "azurerm_route_table" "this" {
-  count = var.network_plugin == "azure" ? 0 : 1
+  count = var.outbound_type == "userDefinedRouting" ? 1 : 0
 
   name                           = var.route_table.name
   location                       = var.location
@@ -176,7 +176,7 @@ resource "azurerm_route_table" "this" {
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_route_table" {
-  count = var.network_plugin == "azure" ? 0 : 1
+  count = var.outbound_type == "userDefinedRouting" ? 1 : 0
 
   subnet_id      = var.node_subnet
   route_table_id = azurerm_route_table.this[0].id
@@ -191,7 +191,7 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
   role_definition_name = "Network Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 
-  #depends_on = [ azurerm_route_table.this ]
+  depends_on = [ azurerm_route_table.this ]
 }
 
 resource "azurerm_role_assignment" "aks_dns" {

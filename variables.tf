@@ -350,16 +350,13 @@ variable "admin_group_object_ids" {
   default     = []
 }
 
-variable "keda_enabled" {
-  description = "(Optional) Should KEDA be enabled for this Kubernetes Cluster? Defaults to false."
-  type        = bool
-  default     = false
-}
-
-variable "vertical_pod_autoscaler_enabled" {
-  description = "(Optional) Should Vertical Pod Autoscaler be enabled for this Kubernetes Cluster? Defaults to false."
-  type        = bool
-  default     = false
+variable "workload_autoscaler_profile" {
+  type = object({
+    keda_enabled                     = optional(bool)
+    vertical_pod_autoscaler_enabled  = optional(bool)
+  })
+  default     = null
+  description = "The workload autoscaler profile for the Kubernetes cluster."
 }
 
 variable "diagnostic_settings" {
