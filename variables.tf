@@ -174,10 +174,10 @@ variable "user_node_pool" {
     temporary_name_for_rotation = optional(string, "rtuser")
     pod_subnet_id               = optional(string, null)
     vnet_subnet_id              = optional(string, null)
-    upgrade_settings = optional(object({
-      drain_timeout_in_minutes      = optional(number)
-      node_soak_duration_in_minutes = optional(number)
-      max_surge                     = string
+    upgrade_settings               = optional(object({
+      max_surge                     = optional(string, "10%")
+      drain_timeout_in_minutes      = optional(number, 0)
+      node_soak_duration_in_minutes = optional(number, 0)
     }), {})
     tags                        = optional(map(string), {})
   }))
