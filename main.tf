@@ -175,6 +175,16 @@ resource "azurerm_route_table" "this" {
   bgp_route_propagation_enabled  = var.route_table.bgp_route_propagation_enabled
 }
 
+resource "azurerm_route" "internet" {
+  count = var.outbound_type == "userDefinedRouting" ? 1 : 0
+
+  name                = "internet"
+  resource_group_name = var.resource_group_name
+  route_table_name    = azurerm_route_table.this.name
+  address_prefix      = "0.0.0.0/0"
+  next_hop_type       = "VirtualAppliance"
+}
+
 resource "azurerm_subnet_route_table_association" "subnet_route_table" {
   count = var.outbound_type == "userDefinedRouting" ? 1 : 0
 
