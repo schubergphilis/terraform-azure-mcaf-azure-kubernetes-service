@@ -150,9 +150,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     ignore_changes = [
       kubernetes_version
     ]
-  }
 
-  lifecycle {
     precondition {
       condition     = var.network_profile.network_data_plane != "cilium" || (var.network_profile.network_plugin_mode == "overlay" || var.system_node_pool.pod_subnet_id != null)
       error_message = "When network_data_plane is set to cilium, one of either network_plugin_mode = 'overlay' or pod_subnet_id must be specified."
