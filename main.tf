@@ -20,8 +20,8 @@ resource "azurerm_kubernetes_cluster" "this" {
   default_node_pool {
     name           = var.system_node_pool.name
     vm_size        = var.system_node_pool.vm_size
-    vnet_subnet_id = var.node_subnet
-    pod_subnet_id  = try(var.network_plugin == "azure") ? var.pod_subnet : null
+    vnet_subnet_id = try(var.system_node_pool.node_subnet_id, var.node_subnet, null)
+    pod_subnet_id  = try(var.system_node_pool.pod_subnet_id, var.pod_subnet, null)
 
     zones                        = var.system_node_pool.availability_zones
     node_labels                  = var.system_node_pool.node_labels
@@ -86,15 +86,40 @@ resource "azurerm_kubernetes_cluster" "this" {
 
 
   network_profile {
-    dns_service_ip      = var.dns_service_ip
-    network_plugin      = var.network_plugin
-    network_plugin_mode = var.network_plugin_mode
-    network_data_plane  = var.network_policy == "cilium" ? "cilium" : "azure" #TODO
-    network_policy      = var.network_plugin == "none" ? null : var.network_policy
-    outbound_type       = var.outbound_type
-    service_cidr        = var.service_cidr
-    pod_cidr            = (var.network_plugin == "azure" && var.network_plugin_mode != "overlay") ? null : var.pod_cidr
-    load_balancer_sku   = var.load_balancer_sku
+    network_plugin      = var.network_profile.network_plugin
+    dns_service_ip      = var.network_profile.dns_service_ip
+    ip_versions         = var.network_profile.ip_versions
+    load_balancer_sku   = var.network_profile.load_balancer_sku
+    network_data_plane  = var.network_profile.network_data_plane
+    network_mode        = var.network_profile.network_mode
+    network_plugin_mode = var.network_profile.network_plugin_mode
+    network_policy      = var.network_profile.network_policy
+    outbound_type       = var.network_profile.outbound_type
+    pod_cidr            = var.network_profile.pod_cidr
+    pod_cidrs           = var.network_profile.pod_cidrs
+    service_cidr        = var.network_profile.service_cidr
+    service_cidrs       = var.network_profile.service_cidrs
+
+    dynamic "load_balancer_profile" {
+      for_each = var.network_profile.load_balancer_profile != null ? [var.network_profile.load_balancer_profile] : []
+
+      content {
+        idle_timeout_in_minutes     = var.network_profile.load_balancer_profile.idle_timeout_in_minutes
+        managed_outbound_ip_count   = var.network_profile.load_balancer_profile.managed_outbound_ip_count
+        managed_outbound_ipv6_count = var.network_profile.load_balancer_profile.managed_outbound_ipv6_count
+        outbound_ip_address_ids     = var.network_profile.load_balancer_profile.outbound_ip_address_ids
+        outbound_ip_prefix_ids      = var.network_profile.load_balancer_profile.outbound_ip_prefix_ids
+        outbound_ports_allocated    = var.network_profile.load_balancer_profile.outbound_ports_allocated
+      }
+    }
+    dynamic "nat_gateway_profile" {
+      for_each = var.network_profile.nat_gateway_profile != null ? [var.network_profile.nat_gateway_profile] : []
+
+      content {
+        idle_timeout_in_minutes   = var.network_profile.nat_gateway_profile.idle_timeout_in_minutes
+        managed_outbound_ip_count = var.network_profile.nat_gateway_profile.managed_outbound_ip_count
+      }
+    }
   }
 
   local_account_disabled = true
@@ -113,10 +138,25 @@ resource "azurerm_kubernetes_cluster" "this" {
     }
   }
 
+  dynamic "microsoft_defender" {
+    for_each = var.defender_log_analytics_workspace_id != null ? [var.defender_log_analytics_workspace_id] : []
+
+    content {
+      log_analytics_workspace_id = var.defender_log_analytics_workspace_id
+    }
+  }
+
   lifecycle {
     ignore_changes = [
       kubernetes_version
     ]
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.network_profile.network_data_plane != "cilium" || (var.network_profile.network_plugin_mode == "overlay" || var.system_node_pool.pod_subnet_id != null)
+      error_message = "When network_data_plane is set to cilium, one of either network_plugin_mode = 'overlay' or pod_subnet_id must be specified."
+    }
   }
 }
 
@@ -131,7 +171,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   node_taints                 = each.value.taints
   zones                       = each.value.availability_zones
   vnet_subnet_id              = try(each.value.node_subnet_id, var.node_subnet)
-  pod_subnet_id               = try(var.network_plugin == "azure") ? var.node_subnet.id : null
+  pod_subnet_id               = try(each.value.pod_subnet_id, var.pod_subnet)
   auto_scaling_enabled        = each.value.auto_scaling_enabled
   host_encryption_enabled     = each.value.host_encryption_enabled
   node_public_ip_enabled      = each.value.node_public_ip_enabled
@@ -153,6 +193,13 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
       max_surge                     = upgrade_settings.value.max_surge
       drain_timeout_in_minutes      = upgrade_settings.value.node_soak_duration_in_minutes
       node_soak_duration_in_minutes = upgrade_settings.value.node_soak_duration_in_minutes
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.network_plugin_mode != "overlay" || !can(regex("^Standard_DC[0-9]+s?_v2$", var.user_node_pool.vm_size))
+      error_message = "With with Azure CNI Overlay you can't use DCsv2-series virtual machines in node pools. "
     }
   }
 

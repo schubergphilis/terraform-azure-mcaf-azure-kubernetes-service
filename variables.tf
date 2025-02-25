@@ -12,10 +12,10 @@ variable "routes" {
   default = null
 }
 
-variable "endpoint_subnet" {
-  description = "The subnet for the api endpoint"
-  type = string
-}
+# variable "endpoint_subnet" {
+#   description = "The subnet for the api endpoint"
+#   type = string
+# }
 
 variable "node_subnet" {
   description = "The subnet for the k8s nodes"
@@ -56,9 +56,16 @@ variable "private_cluster_enabled" {
 }
 
 variable "automatic_upgrade_channel" {
-  description = "(Optional) The upgrade channel for this Kubernetes Cluster. Possible values are patch, rapid, node-image and stable. Omitting this field sets this value to none."
-  default     = null
   type        = string
+  default     = null
+  description = "(Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. By default automatic-upgrades are turned off. Note that you cannot specify the patch version using `kubernetes_version` or `orchestrator_version` when using the `patch` upgrade channel. See [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-cluster) for more information"
+
+  validation {
+    condition = var.automatic_upgrade_channel == null ? true : contains([
+      "patch", "stable", "rapid", "node-image"
+    ], var.automatic_upgrade_channel)
+    error_message = "`automatic_upgrade_channel`'s possible values are `patch`, `stable`, `rapid` or `node-image`."
+  }
 }
 
 variable "sku_tier" {
@@ -264,6 +271,7 @@ variable "network_plugin_mode" {
   description = "(Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is overlay."
   default     = null
 }
+
 variable "dns_service_ip" {
   description = "Specifies the DNS service IP"
   type        = string
@@ -295,6 +303,12 @@ variable "service_cidr" {
 variable "bgp_route_propagation_enabled" {
   type    = bool
   default = false
+}
+
+variable "defender_log_analytics_workspace_id" {
+  type        = string
+  default     = null
+  description = "The log analytics workspace ID for the Microsoft Defender."
 }
 
 # variable "network_data_plane" {
@@ -500,6 +514,59 @@ A map of role assignments to create on the resource. The map key is deliberately
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
   nullable    = false
+}
+
+variable "network_profile" {
+  type = object({
+    network_plugin      = string
+    network_mode        = optional(string)
+    network_policy      = optional(string)
+    dns_service_ip      = optional(string)
+    network_data_plane  = optional(string)
+    network_plugin_mode = optional(string)
+    outbound_type       = optional(string, "loadBalancer")
+    pod_cidr            = optional(string)
+    pod_cidrs           = optional(list(string))
+    service_cidr        = optional(string)
+    service_cidrs       = optional(list(string))
+    ip_versions         = optional(list(string))
+    load_balancer_sku   = optional(string)
+    load_balancer_profile = optional(object({
+      managed_outbound_ip_count   = optional(number)
+      managed_outbound_ipv6_count = optional(number)
+      outbound_ip_address_ids     = optional(list(string))
+      outbound_ip_prefix_ids      = optional(list(string))
+      outbound_ports_allocated    = optional(number)
+      idle_timeout_in_minutes     = optional(number)
+    }))
+    nat_gateway_profile = optional(object({
+      managed_outbound_ip_count = optional(number)
+      idle_timeout_in_minutes   = optional(number)
+    }))
+  })
+  default = {
+    network_plugin      = "azure"
+    network_policy      = "azure"
+    network_plugin_mode = "overlay"
+  }
+  description = "The network profile for the Kubernetes cluster."
+
+  validation {
+    condition     = !((var.network_profile.load_balancer_profile != null) && var.network_profile.load_balancer_sku != "standard")
+    error_message = "Enabling load_balancer_profile requires that `load_balancer_sku` be set to `standard`"
+  }
+  validation {
+    condition     = var.network_profile.network_mode != "overlay" || var.network_profile.network_plugin == "azure"
+    error_message = "When network_plugin_mode is set to `overlay`, the network_plugin field can only be set to azure."
+  }
+  validation {
+    condition     = var.network_profile.network_policy != "cilium" || var.network_profile.network_plugin == "azure"
+    error_message = "When the network policy is set to cilium, the network_plugin field can only be set to azure."
+  }
+  validation {
+    condition     = var.network_profile.network_policy != "cilium" || var.network_profile.network_plugin_mode == "overlay" || var.default_node_pool.pod_subnet_id != null
+    error_message = "When the network policy is set to cilium, one of either network_plugin_mode = `overlay` or pod_subnet_id must be specified."
+  }
 }
 
 variable "tags" {
