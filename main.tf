@@ -5,7 +5,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   kubernetes_version        = var.kubernetes_version
   dns_prefix                = var.dns_prefix
   private_cluster_enabled   = var.private_cluster_enabled
-  private_dns_zone_id       = var.private_cluster_enabled == true ? var.private_dns_zone : null
+  private_dns_zone_id       = var.private_cluster_enabled == true ? var.private_dns_zone_id : null
   automatic_upgrade_channel = var.automatic_upgrade_channel
   image_cleaner_enabled     = var.image_cleaner_enabled
   sku_tier                  = var.sku_tier
@@ -267,7 +267,7 @@ resource "azurerm_subnet_route_table_association" "subnet_route_table" {
 }
 
 resource "azurerm_role_assignment" "aks_vnet_rbac" {
-  count = var.network_profile.network_plugin == "azure" ? 0 : 1
+  count = var.network_profile.network_plugin_mode == "azure" ? 0 : 1
 
   scope                = var.vnet_id
   role_definition_name = "Network Contributor"
@@ -277,9 +277,9 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
 }
 
 resource "azurerm_role_assignment" "aks_dns" {
-  count = var.network_profile.network_plugin == "azure" ? 0 : 1
+  count = var.private_dns_zone_id == null ? 0 : 1
 
-  scope                = var.private_dns_zone
+  scope                = var.private_dns_zone_id
   role_definition_name = "Private DNS Zone Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 }

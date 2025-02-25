@@ -454,7 +454,7 @@ variable "network_profile" {
 
   "The network profile for the Kubernetes cluster."
 
-  - `network_plugin` - The network plugin to use for networking. Possible values are azure and kubenet and none (Bring your own networking). Defaults to azure. When network_plugin is set to azure - the pod_cidr field must not be set, unless specifying network_plugin_mode to overlay.
+  - `network_plugin` - The network plugin to use for networking. Possible values are azure and kubenet and none (BYOCNI). Defaults to azure. When network_plugin is set to azure - the pod_cidr field must not be set, unless specifying network_plugin_mode to overlay.
   - `service_cidr` - The CIDR to use for service cluster IP addresses. This must not overlap with any Subnet IP ranges. Changing this forces a new resource to be created.
   - `service_cidrs` - The CIDRs to use for service cluster IP addresses. This must not overlap with any Subnet IP ranges. Changing this forces a new resource to be created.
   - `dns_service_ip` - The IP address of the Kubernetes DNS service. This must be within the Kubernetes service address range specified by service_cidr.
@@ -513,7 +513,7 @@ variable "dns_prefix" {
   type        = string
 }
 
-variable "private_dns_zone" {
+variable "private_dns_zone_id" {
   description = "The ID of Private DNS Zone which should be delegated to this Cluster. Required when private_cluster_enabled is true"
   type        = string
   default     = null
