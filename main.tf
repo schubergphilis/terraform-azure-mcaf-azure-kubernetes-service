@@ -196,7 +196,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
 
   lifecycle {
     precondition {
-      condition     = var.network_plugin_mode != "overlay" || !can(regex("^Standard_DC[0-9]+s?_v2$", var.user_node_pool.vm_size))
+      condition     = var.network_profile.network_plugin_mode != "overlay" || !can(regex("^Standard_DC[0-9]+s?_v2$", var.user_node_pool.vm_size))
       error_message = "With with Azure CNI Overlay you can't use DCsv2-series virtual machines in node pools. "
     }
   }
@@ -211,23 +211,23 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
 }
 
 resource "azurerm_route_table" "this" {
-  count = var.outbound_type == "userDefinedRouting" ? 1 : 0
+  count = var.network_profile.outbound_type == "userDefinedRouting" ? 1 : 0
 
-  name                           = var.route_table.name
-  location                       = var.location
-  resource_group_name            = var.resource_group_name
-  tags                           = var.tags
-  bgp_route_propagation_enabled  = var.route_table.bgp_route_propagation_enabled
+  name                          = var.route_table.name
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
+  tags                          = var.tags
+  bgp_route_propagation_enabled = var.route_table.bgp_route_propagation_enabled
 }
 
 resource "azurerm_route" "internet" {
-  count = var.outbound_type == "userDefinedRouting" ? 1 : 0
+  count = var.network_profile.outbound_type == "userDefinedRouting" ? 1 : 0
 
-  name                = "internet"
-  resource_group_name = var.resource_group_name
-  route_table_name    = azurerm_route_table.this[0].name
-  address_prefix      = var.route_table.address_prefix
-  next_hop_type       = "VirtualAppliance"
+  name                   = "internet"
+  resource_group_name    = var.resource_group_name
+  route_table_name       = azurerm_route_table.this[0].name
+  address_prefix         = var.route_table.address_prefix
+  next_hop_type          = var.route_table.next_hop_type
   next_hop_in_ip_address = var.route_table.next_hop_in_ip_address
 
   lifecycle {
@@ -239,27 +239,45 @@ resource "azurerm_route" "internet" {
   }
 }
 
+resource "azurerm_route" "additional_routes" {
+  for_each = var.additional_routes != null ? var.additional_routes : {}
+
+  name                   = each.value.name
+  resource_group_name    = var.resource_group_name
+  route_table_name       = azurerm_route_table.this[0].name
+  address_prefix         = each.value.address_prefix
+  next_hop_type          = each.value.next_hop_type
+  next_hop_in_ip_address = each.value.next_hop_in_ip_address
+
+  lifecycle {
+    precondition {
+      condition     = var.network_profile.outbound_type == "userDefinedRouting"
+      error_message = "Additional routes can only be created when outbound_type is set to userDefinedRouting."
+    }
+  }
+}
+
 resource "azurerm_subnet_route_table_association" "subnet_route_table" {
-  count = var.outbound_type == "userDefinedRouting" ? 1 : 0
+  count = var.network_profile.outbound_type == "userDefinedRouting" ? 1 : 0
 
   subnet_id      = var.node_subnet
   route_table_id = azurerm_route_table.this[0].id
 
-  depends_on = [ azurerm_route_table.this ]
+  depends_on = [azurerm_route_table.this]
 }
 
 resource "azurerm_role_assignment" "aks_vnet_rbac" {
-  count = var.network_plugin == "azure" ? 0 : 1
+  count = var.network_profile.network_plugin == "azure" ? 0 : 1
 
   scope                = var.vnet_id
   role_definition_name = "Network Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
 
-  depends_on = [ azurerm_route_table.this ]
+  depends_on = [azurerm_route_table.this]
 }
 
 resource "azurerm_role_assignment" "aks_dns" {
-  count = var.network_plugin == "azure" ? 0 : 1
+  count = var.network_profile.network_plugin == "azure" ? 0 : 1
 
   scope                = var.private_dns_zone
   role_definition_name = "Private DNS Zone Contributor"

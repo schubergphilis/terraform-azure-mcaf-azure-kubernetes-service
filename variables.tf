@@ -1,33 +1,46 @@
 # ========================================
 # Network related variables
 # ========================================
-variable "routes" {
-  description = "A list of routes"
-  type = list(object({
-    name                   = string
-    address_prefix         = string
-    next_hop_type          = string
-    next_hop_in_ip_address = optional(string)
-  }))
-  default = null
-}
-
-# variable "endpoint_subnet" {
-#   description = "The subnet for the api endpoint"
-#   type = string
-# }
-
 variable "node_subnet" {
   description = "The subnet for the k8s nodes"
-  type = string
+  type        = string
+}
+
+variable "vnet_id" {
+  description = "The ID of the VNet where the AKS cluster will be created"
+  type        = string
+  default     = null
 }
 
 variable "pod_subnet" {
   description = "(Optional) The subnet for the k8s pods when using azure cni"
-  type = string
-  default = null
+  type        = string
+  default     = null
 }
 
+variable "route_table" {
+  description = "The route table to associate with the node subnet"
+  type = object({
+    name                          = optional(string, "aks-rt")
+    route_name                    = optional(string, "fwroute")
+    bgp_route_propagation_enabled = optional(bool, false)
+    next_hop_in_ip_address        = optional(string)
+    next_hop_type                 = optional(string, "VirtualAppliance")
+    address_prefix                = optional(string, "0.0.0.0/0")
+  })
+  default = {}
+}
+
+variable "additional_routes" {
+  description = "A map of additional routes for the route table, only add when you use userDefinedRouting"
+  type = map(object({
+    name                   = optional(string)
+    address_prefix         = optional(string)
+    next_hop_type          = optional(string)
+    next_hop_in_ip_address = optional(string)
+  }))
+  default = null
+}
 
 # ========================================
 # AKS variables
@@ -41,12 +54,6 @@ variable "image_cleaner_enabled" {
   type        = bool
   default     = false
   description = "Whether or not the image cleaner is enabled for the Kubernetes cluster."
-}
-
-variable "network_proxy_disabled" {
-  description = "Should the Kubernetes Cluster have the kube-proxy disabled? Defaults to false."
-  type        = bool
-  default     = false
 }
 
 variable "private_cluster_enabled" {
@@ -83,14 +90,14 @@ variable "sku_tier" {
 variable "workload_identity_enabled" {
   description = "(Optional) Specifies whether Microsoft Entra ID Workload Identity should be enabled for the Cluster. Defaults to false."
   type        = bool
-  default     = true
+  default     = false
 }
 
 # Needed for oat2 proxy
 variable "oidc_issuer_enabled" {
   description = "(Optional) Enable or Disable the OIDC issuer URL. To enable Azure AD Workload Identity oidc_issuer_enabled must be set to true. Enabling the OIDC issuer on an existing cluster changes the current service account token issuer to a new value, which can cause down time as it restarts the API server. If your application pods using a service token remain in a failed state after you enable the OIDC issuer, you may need to restart the pods. After you enable the OIDC issuer on the cluster, disabling it is not supported. The token needs to be refreshed periodically. If you use the SDK, the rotation is automatic. Otherwise, you need to refresh the token manually every 24 hours."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "azure_policy_enabled" {
@@ -101,31 +108,32 @@ variable "azure_policy_enabled" {
 
 variable "system_node_pool" {
   type = object({
-    name                           = optional(string, "system")
-    vm_size                        = optional(string, "Standard_B2s")
-    temporary_name_for_rotation    = optional(string, "rtsystem")
-    availability_zones             = optional(list(string), ["1", "2", "3"])
-    node_labels                    = optional(map(any), {})
-    only_critical_addons_enabled   = optional(bool, true)
-    enable_auto_scaling            = optional(bool, false)
-    enable_host_encryption         = optional(bool, true)
-    enable_node_public_ip          = optional(bool, false)
-    max_pods                       = optional(number, 250)
-    max_count                      = optional(number, 3)
-    min_count                      = optional(number, 1)
-    node_count                     = optional(number, 2)
-    os_disk_type                   = optional(string, "Managed")
-    os_disk_size_gb                = optional(number, null)
-    ultra_ssd_enabled              = optional(bool, false)
-    os_sku                         = optional(string)
-    upgrade_settings               = optional(object({
+    name                         = optional(string, "system")
+    vm_size                      = optional(string, "Standard_B2s")
+    temporary_name_for_rotation  = optional(string, "rtsystem")
+    availability_zones           = optional(list(string), ["1", "2", "3"])
+    node_labels                  = optional(map(any), {})
+    only_critical_addons_enabled = optional(bool, true)
+    enable_auto_scaling          = optional(bool, false)
+    enable_host_encryption       = optional(bool, true)
+    enable_node_public_ip        = optional(bool, false)
+    max_pods                     = optional(number, 250)
+    max_count                    = optional(number, 3)
+    min_count                    = optional(number, 1)
+    node_count                   = optional(number, 2)
+    os_disk_type                 = optional(string, "Managed")
+    os_disk_size_gb              = optional(number, null)
+    pod_subnet_id                = optional(string)
+    ultra_ssd_enabled            = optional(bool, false)
+    os_sku                       = optional(string)
+    upgrade_settings = optional(object({
       max_surge                     = optional(string, "10%")
       drain_timeout_in_minutes      = optional(number, 0)
       node_soak_duration_in_minutes = optional(number, 0)
     }), {})
-    tags                           = optional(map(string), {})
+    tags = optional(map(string), {})
   })
-  default = {}
+  default     = {}
   description = <<DESCRIPTION
 The default node pool configuration for the Kubernetes Cluster.
 
@@ -181,14 +189,14 @@ variable "user_node_pool" {
     temporary_name_for_rotation = optional(string, "rtuser")
     pod_subnet_id               = optional(string, null)
     vnet_subnet_id              = optional(string, null)
-    upgrade_settings               = optional(object({
+    upgrade_settings = optional(object({
       max_surge                     = optional(string, "10%")
       drain_timeout_in_minutes      = optional(number, 0)
       node_soak_duration_in_minutes = optional(number, 0)
     }), {})
-    tags                        = optional(map(string), {})
+    tags = optional(map(string), {})
   }))
-  default  = {}
+  default     = {}
   description = <<DESCRIPTION
 The user node pool configuration for the Kubernetes Cluster.
 
@@ -234,102 +242,10 @@ variable "linux_profile" {
   default = null
 }
 
-# TODO
-# variable "aks_managed_identity" {
-#   description = "The Managed Identity to use for the AKS Cluster."
-#   type        = list(string)
-# }
-
-variable "route_table" {
-  description = "The route table to associate with the node subnet"
-  type = object({
-    name = optional(string, "aks-rt")
-    bgp_route_propagation_enabled = optional(bool, false)
-    next_hop_in_ip_address = optional(string)
-    address_prefix = optional(string, "0.0.0.0/0")
-  })
-  default = {}
-}
-
-variable "network_plugin" {
-  description = "The network plugin to use for networking. Possible values are azure and kubenet. Defaults to azure. When network_plugin is set to azure - the pod_cidr field must not be set, unless specifying network_plugin_mode to overlay."
-  type        = string
-  default     = "none"
-  validation {
-    condition     = contains(["azure", "kubenet", "none"], var.network_plugin)
-    error_message = "The network plugin is invalid."
-  }
-}
-
-variable "vnet_id" {
-  description = "The ID of the VNet where the AKS cluster will be created"
-  type        = string
-  default     = null
-}
-
-variable "network_plugin_mode" {
-  description = "(Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is overlay."
-  default     = null
-}
-
-variable "dns_service_ip" {
-  description = "Specifies the DNS service IP"
-  type        = string
-}
-
-variable "outbound_type" {
-  description = "(Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are loadBalancer, userDefinedRouting, managedNATGateway and userAssignedNATGateway. Defaults to loadBalancer."
-  type        = string
-  default     = "userDefinedRouting"
-
-  validation {
-    condition     = contains(["loadBalancer", "userDefinedRouting", "managedNATGateway", "userAssignedNATGateway"], var.outbound_type)
-    error_message = "The outbound type is invalid. Valid values are: 'loadBalancer', 'userDefinedRouting', 'managedNATGateway', 'userAssignedNATGateway'."
-  }
-}
-
-variable "pod_cidr" {
-  description = "(Optional) The CIDR to use for pod IP addresses. This field can only be set when network_plugin is set to kubenet or network_plugin_mode is set to overlay. Changing this forces a new resource to be created."
-  type        = string
-  default     = null
-}
-
-variable "service_cidr" {
-  description = "(Optional) The Network Range used by the Kubernetes service. Changing this forces a new resource to be created."
-  type        = string
-  default     = null
-}
-
-variable "bgp_route_propagation_enabled" {
-  type    = bool
-  default = false
-}
-
 variable "defender_log_analytics_workspace_id" {
   type        = string
   default     = null
   description = "The log analytics workspace ID for the Microsoft Defender."
-}
-
-# variable "network_data_plane" {
-#   description = "(Optional) Specifies the data plane used for building the Kubernetes network. Possible values are azure and cilium. Defaults to azure. Disabling this forces a new resource to be created. When network_data_plane is set to cilium, the network_plugin field can only be set to azure. When network_data_plane is set to cilium, one of either network_plugin_mode = overlay or pod_subnet_id must be specified."
-#   type        = string
-#   default     = "azure"
-
-#   validation {
-#     condition     = contains(["azure", "cilium"], var.network_data_plane)
-#     error_message = "The network data plane is invalid."
-#   }
-# }
-
-variable "network_policy" {
-  description = "(Optional) Sets up network policy to be used with Azure CNI. Network policy allows us to control the traffic flow between pods. Currently supported values are calico, azure and cilium. When network_policy is set to azure, the network_plugin field can only be set to azure. When network_policy is set to cilium, the network_data_plane field must be set to cilium."
-  type        = string
-  default     = "azure"
-  validation {
-    condition     = contains(["calico", "azure", "cilium"], var.network_policy)
-    error_message = "The network policy is invalid."
-  }
 }
 
 variable "disk_encryption_set_id" {
@@ -338,17 +254,6 @@ variable "disk_encryption_set_id" {
   default     = null
 }
 
-variable "load_balancer_sku" {
-  description = "(Optional) The SKU of the Load Balancer which should be used for this Kubernetes Cluster. Possible values are standard and basic. Defaults to standard."
-  type        = string
-  default     = "standard"
-
-  validation {
-    condition     = contains(["standard", "basic"], var.load_balancer_sku)
-    error_message = "The load balancer sku is invalid."
-  }
-
-}
 variable "azure_rbac_enabled" {
   description = "(Optional) Should Azure RBAC be enabled for this Kubernetes Cluster? Defaults to true."
   type        = bool
@@ -362,8 +267,8 @@ variable "admin_group_object_ids" {
 
 variable "workload_autoscaler_profile" {
   type = object({
-    keda_enabled                     = optional(bool)
-    vertical_pod_autoscaler_enabled  = optional(bool)
+    keda_enabled                    = optional(bool)
+    vertical_pod_autoscaler_enabled = optional(bool)
   })
   default     = null
   description = "The workload autoscaler profile for the Kubernetes cluster."
@@ -518,16 +423,16 @@ DESCRIPTION
 
 variable "network_profile" {
   type = object({
-    network_plugin      = string
+    network_plugin      = optional(string, "azure")
+    dns_service_ip      = optional(string)
     network_mode        = optional(string)
     network_policy      = optional(string)
-    dns_service_ip      = optional(string)
     network_data_plane  = optional(string)
-    network_plugin_mode = optional(string)
+    network_plugin_mode = optional(string, "overlay")
     outbound_type       = optional(string, "loadBalancer")
     pod_cidr            = optional(string)
     pod_cidrs           = optional(list(string))
-    service_cidr        = optional(string)
+    service_cidr        = optional(string, null)
     service_cidrs       = optional(list(string))
     ip_versions         = optional(list(string))
     load_balancer_sku   = optional(string)
@@ -544,12 +449,27 @@ variable "network_profile" {
       idle_timeout_in_minutes   = optional(number)
     }))
   })
-  default = {
-    network_plugin      = "azure"
-    network_policy      = "azure"
-    network_plugin_mode = "overlay"
-  }
-  description = "The network profile for the Kubernetes cluster."
+  default     = {}
+  description = <<DESCRIPTION
+
+  "The network profile for the Kubernetes cluster."
+
+  - `network_plugin` - The network plugin to use for networking. Possible values are azure and kubenet and none (Bring your own networking). Defaults to azure. When network_plugin is set to azure - the pod_cidr field must not be set, unless specifying network_plugin_mode to overlay.
+  - `service_cidr` - The CIDR to use for service cluster IP addresses. This must not overlap with any Subnet IP ranges. Changing this forces a new resource to be created.
+  - `service_cidrs` - The CIDRs to use for service cluster IP addresses. This must not overlap with any Subnet IP ranges. Changing this forces a new resource to be created.
+  - `dns_service_ip` - The IP address of the Kubernetes DNS service. This must be within the Kubernetes service address range specified by service_cidr.
+  - `network_mode` - The network mode used for building the Kubernetes network. Possible values are transparent and overlay.
+  - `network_policy` - Sets up network policy to be used with Azure CNI. Network policy allows us to control the traffic flow between pods. Currently supported values are calico, azure and cilium. When network_policy is set to azure, the network_plugin field can only be set to azure. When network_policy is set to cilium, the network_data_plane field must be set to cilium.
+  - `network_data_plane` - Specifies the data plane used for building the Kubernetes network. Possible values are azure and cilium. Defaults to azure. Disabling this forces a new resource to be created. When network_data_plane is set to cilium, the network_plugin field can only be set to azure. When network_data_plane is set to cilium, one of either network_plugin_mode = overlay or pod_subnet_id must be specified.
+  - `network_plugin_mode` - Specifies the network plugin mode used for building the Kubernetes network. Possible value is overlay, defaults to null.
+  - `outbound_type` - The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are loadBalancer, userDefinedRouting, managedNATGateway and userAssignedNATGateway. Defaults to loadBalancer.
+  - `pod_cidr` - The CIDR to use for pod IP addresses. This field can only be set when network_plugin is set to kubenet or network_plugin_mode is set to overlay. Changing this forces a new resource to be created.
+  - `pod_cidrs` - The CIDRs to use for pod IP addresses. This field can only be set when network_plugin is set to kubenet or network_plugin_mode is set to overlay. Changing this forces a new resource to be created.
+  - `ip_versions` - The IP versions to use for the Kubernetes cluster. Possible values are IPv4 and IPv6.
+  - `load_balancer_sku` - The SKU of the Load Balancer which should be used for this Kubernetes Cluster. Possible values are standard and basic. Defaults to standard.
+  - `load_balancer_profile` - The load balancer profile for the Kubernetes cluster.
+  - `nat_gateway_profile` - The NAT gateway profile for the Kubernetes cluster.
+  DESCRIPTION
 
   validation {
     condition     = !((var.network_profile.load_balancer_profile != null) && var.network_profile.load_balancer_sku != "standard")
@@ -564,7 +484,7 @@ variable "network_profile" {
     error_message = "When the network policy is set to cilium, the network_plugin field can only be set to azure."
   }
   validation {
-    condition     = var.network_profile.network_policy != "cilium" || var.network_profile.network_plugin_mode == "overlay" || var.default_node_pool.pod_subnet_id != null
+    condition     = var.network_profile.network_policy != "cilium" || var.network_profile.network_plugin_mode == "overlay" || var.system_node_pool.pod_subnet_id != null
     error_message = "When the network policy is set to cilium, one of either network_plugin_mode = `overlay` or pod_subnet_id must be specified."
   }
 }

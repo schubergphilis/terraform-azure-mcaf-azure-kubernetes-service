@@ -49,11 +49,11 @@ resource "azurerm_subnet" "byocnidemo-endpoint" {
 module "aks_route_table" {
   source = "git::https://github.com/schubergphilis/terraform-azure-mcaf-route-table?ref=main"
 
-  name                     = "azurekubernetdemo-rt"
-  location                 = azurerm_resource_group.byocnidemo.location
+  name                = "azurekubernetdemo-rt"
+  location            = azurerm_resource_group.byocnidemo.location
   resource_group_name = azurerm_resource_group.byocnidemo.name
-  routes = []
-  tags                     = local.tags
+  routes              = []
+  tags                = local.tags
 }
 
 # Create the managed identity separately
@@ -85,36 +85,36 @@ resource "azurerm_subnet_route_table_association" "subnet_route_table" {
 }
 
 module "aks" {
-  source = "../../"
-  depends_on = [ azurerm_role_assignment.aks_vnet_rbac ]
-  
+  source     = "../../"
+  depends_on = [azurerm_role_assignment.aks_vnet_rbac]
+
   # Pass the identity to the module
   user_assigned_identity_id = azurerm_user_assigned_identity.aks_identity.id
-  
+
   location = azurerm_resource_group.byocnidemo.location
 
   # Required networking variables
   dns_service_ip = "10.0.0.10"
   service_cidr   = "10.0.0.0/16"
 
-  node_subnet = azurerm_subnet.byocnidemo-node.id
+  node_subnet     = azurerm_subnet.byocnidemo-node.id
   endpoint_subnet = azurerm_subnet.byocnidemo-endpoint.id
 
   # AKS Configuration
-  kubernetes_cluster_name = "byocnidemo-aks"
-  resource_group_name    = azurerm_resource_group.byocnidemo.name
-  dns_prefix            = "byocnidemo"
+  kubernetes_cluster_name  = "byocnidemo-aks"
+  resource_group_name      = azurerm_resource_group.byocnidemo.name
+  dns_prefix               = "byocnidemo"
   node_resource_group_name = "aksbyocnidemo-nodes"
-  
+
   kubernetes_version      = "1.28.9"
-  network_plugin         = "none"
+  network_plugin          = "none"
   private_cluster_enabled = true
-  
+
   # Optional features
   workload_identity_enabled = true
-  oidc_issuer_enabled      = true
-  azure_policy_enabled     = true
-  
+  oidc_issuer_enabled       = true
+  azure_policy_enabled      = true
+
   # System node pool configuration
   system_node_name    = "system"
   system_node_vm_size = "Standard_B2s"
