@@ -13,9 +13,10 @@ resource "azurerm_kubernetes_cluster" "this" {
   oidc_issuer_enabled       = var.oidc_issuer_enabled
   azure_policy_enabled      = var.azure_policy_enabled
   disk_encryption_set_id    = var.disk_encryption_set_id
+  local_account_disabled    = true
   tags                      = var.tags
 
-  node_resource_group = var.node_resource_group_name
+  node_resource_group       = var.node_resource_group_name
 
   default_node_pool {
     name           = var.system_node_pool.name
@@ -122,8 +123,14 @@ resource "azurerm_kubernetes_cluster" "this" {
     }
   }
 
-  local_account_disabled = true
-  # TODO
+  dynamic "api_server_access_profile" {
+    for_each = var.api_server_access_profile != null ? [var.api_server_access_profile] : []
+
+    content {
+      authorized_ip_ranges = api_server_access_profile.value.authorized_ip_ranges
+    }
+  }
+
   azure_active_directory_role_based_access_control {
     admin_group_object_ids = var.aks_administrators
     azure_rbac_enabled     = var.azure_rbac_enabled
@@ -277,9 +284,16 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
 }
 
 resource "azurerm_role_assignment" "aks_dns" {
-  count = var.private_dns_zone_id == null ? 0 : 1
+  count = var.private_cluster_enabled == true ? 1 : 0
 
   scope                = var.private_dns_zone_id
   role_definition_name = "Private DNS Zone Contributor"
   principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
+
+  lifecycle {
+    precondition {
+      condition     = var.private_cluster_enabled == true && var.private_dns_zone_id != null
+      error_message = "Private DNS Zone Contributor role assignment can only be created when private_cluster_enabled is set to true."
+    }
+  }
 }

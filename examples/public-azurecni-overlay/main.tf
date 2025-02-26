@@ -95,7 +95,7 @@ module "network" {
 }
 
 module "des" {
-  source                    = "github.com/schubergphilis/terraform-azure-mcaf-diskencryptionset?ref=v0.2.0"
+  source                    = "github.com/schubergphilis/terraform-azure-mcaf-diskencryptionset?ref=v0.1.0"
   name                      = "desaks"
   resource_group_name       = azurerm_resource_group.rsg.name
   location                  = azurerm_resource_group.rsg.location
@@ -151,8 +151,12 @@ module "aks" {
   node_resource_group_name = "${azurerm_resource_group.rsg.name}-nodes"
   disk_encryption_set_id   = module.des.resource_id
 
+  private_cluster_enabled = false
+  api_server_access_profile = {
+    authorized_ip_ranges = ["123.123.123.123/32"]
+  }
+
   kubernetes_version      = "1.31.5"
-  private_cluster_enabled = true
   private_dns_zone_id     = azurerm_private_dns_zone.aks.id
 
   user_node_pool = {
@@ -170,7 +174,7 @@ module "aks" {
     user_managed_identity = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
-  aks_administrators = [] # Replace with actual admin group ID
+  aks_administrators = ["00000000-0000-0000-0000-000000000000"] # Replace with actual admin group ID
 
   tags = local.tags
 }

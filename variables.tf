@@ -32,7 +32,6 @@ variable "route_table" {
 }
 
 variable "additional_routes" {
-  description = "A map of additional routes for the route table, only add when you use userDefinedRouting"
   type = map(object({
     name                   = optional(string)
     address_prefix         = optional(string)
@@ -40,6 +39,35 @@ variable "additional_routes" {
     next_hop_in_ip_address = optional(string)
   }))
   default = null
+  description = <<DESCRIPTION
+"A map of additional routes for the route table, only add when you use userDefinedRouting"
+- `name` - The name of the route.
+- `address_prefix` - The address prefix for the route.
+- `next_hop_type` - The type of the next hop, VirtualAppliance.
+- `next_hop_in_ip_address` - The IP address of the next hop.
+
+```
+  additional_routes = {
+    route1 = {
+      name = "route1"
+      address_prefix = "0.0.0.0/0"
+      next_hop_type = "VirtualAppliance"
+      next_hop_in_ip_address = "10.10.0.1"
+    }
+  }
+```
+DESCRIPTION
+}
+
+variable "api_server_access_profile" {
+  type = object({
+    authorized_ip_ranges = optional(set(string))
+  })
+  default     = null
+  description = <<DESCRIPTION
+The API server access profile for the Kubernetes cluster.
+- `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
+DESCRIPTION
 }
 
 # ========================================

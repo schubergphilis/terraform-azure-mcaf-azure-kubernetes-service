@@ -170,7 +170,7 @@ module "aks" {
     user_managed_identity = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
-  aks_administrators = [] # Replace with actual admin group ID
+  aks_administrators = ["00000000-0000-0000-0000-000000000000"] # Replace with actual admin group ID
 
   tags = local.tags
 }
