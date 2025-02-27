@@ -135,10 +135,11 @@ module "aks" {
   node_subnet = module.network.subnets["AKSNodeSubnet"].id
 
   network_profile = {
-    outbound_type  = "loadBalancer"
-    network_plugin = "none"
-    dns_service_ip = "10.0.0.10"
-    service_cidr   = "10.0.0.0/16"
+    outbound_type       = "loadBalancer"
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    dns_service_ip      = "10.0.0.10"
+    service_cidr        = "10.0.0.0/16"
   }
 
   # AKS Configuration
