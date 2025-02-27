@@ -135,9 +135,14 @@ resource "azurerm_kubernetes_cluster" "this" {
     }
   }
 
-  azure_active_directory_role_based_access_control {
-    admin_group_object_ids = var.aks_administrators
-    azure_rbac_enabled     = var.azure_rbac_enabled
+  dynamic "azure_active_directory_role_based_access_control" {
+    for_each = var.azure_active_directory_role_based_access_control != null ? [var.azure_active_directory_role_based_access_control] : []
+
+    content {
+      admin_group_object_ids = azure_active_directory_role_based_access_control.value.admin_group_object_ids
+      azure_rbac_enabled     = azure_active_directory_role_based_access_control.value.azure_rbac_enabled
+      tenant_id              = azure_active_directory_role_based_access_control.value.tenant_id
+    }
   }
 
   dynamic "workload_autoscaler_profile" {

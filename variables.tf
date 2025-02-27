@@ -314,15 +314,20 @@ variable "disk_encryption_set_id" {
   default     = null
 }
 
-variable "azure_rbac_enabled" {
-  description = "(Optional) Should Azure RBAC be enabled for this Kubernetes Cluster? Defaults to true."
-  type        = bool
-  default     = true
-}
-variable "admin_group_object_ids" {
-  description = "(Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster."
-  type        = list(string)
-  default     = []
+variable "azure_active_directory_role_based_access_control" {
+  type = object({
+    tenant_id              = optional(string)
+    admin_group_object_ids = optional(list(string))
+    azure_rbac_enabled     = optional(bool, true)
+  })
+  default     = null
+  description = <<DESCRIPTION
+The Azure Active Directory Role Based Access Control configuration for the Kubernetes cluster.
+
+- `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
+- `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
+- `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
+DESCRIPTION
 }
 
 variable "workload_autoscaler_profile" {
@@ -587,14 +592,6 @@ variable "private_dns_zone_id" {
 variable "node_resource_group_name" {
   description = "The name of the Resource Group where the Kubernetes Nodes should exist"
   type        = string
-}
-
-# ========================================
-# AAD Integration
-# ========================================
-variable "aks_administrators" {
-  description = "A list of Azure AD group object IDs that will have the admin role of the cluster"
-  type        = list(string)
 }
 
 # ========================================
