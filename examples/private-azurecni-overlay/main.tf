@@ -171,7 +171,9 @@ module "aks" {
     user_managed_identity = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
-  aks_administrators = ["00000000-0000-0000-0000-000000000000"] # Replace with actual admin group ID
+  azure_active_directory_role_based_access_control = {
+    admin_group_object_ids = ["00000000-0000-0000-0000-000000000000"] # Replace with actual admin group ID
+  }
 
   tags = local.tags
 }
