@@ -456,7 +456,7 @@ variable "network_profile" {
     network_mode        = optional(string)
     network_policy      = optional(string)
     network_data_plane  = optional(string)
-    network_plugin_mode = optional(string, "overlay")
+    network_plugin_mode = optional(string)
     outbound_type       = optional(string, "loadBalancer")
     pod_cidr            = optional(string)
     pod_cidrs           = optional(list(string))
