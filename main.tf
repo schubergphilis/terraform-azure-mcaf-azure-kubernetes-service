@@ -1,22 +1,25 @@
 resource "azurerm_kubernetes_cluster" "this" {
-  name                      = var.kubernetes_cluster_name
-  location                  = var.location
-  resource_group_name       = var.resource_group_name
-  kubernetes_version        = var.kubernetes_version
-  dns_prefix                = var.dns_prefix
-  private_cluster_enabled   = var.private_cluster_enabled
-  private_dns_zone_id       = var.private_cluster_enabled == true ? var.private_dns_zone_id : null
-  automatic_upgrade_channel = var.automatic_upgrade_channel
-  image_cleaner_enabled     = var.image_cleaner_enabled
-  sku_tier                  = var.sku_tier
-  workload_identity_enabled = var.workload_identity_enabled
-  oidc_issuer_enabled       = var.oidc_issuer_enabled
-  azure_policy_enabled      = var.azure_policy_enabled
-  disk_encryption_set_id    = var.disk_encryption_set_id
-  local_account_disabled    = true
-  tags                      = var.tags
-
-  node_resource_group       = var.node_resource_group_name
+  name                         = var.kubernetes_cluster_name
+  location                     = var.location
+  resource_group_name          = var.resource_group_name
+  kubernetes_version           = var.kubernetes_version
+  dns_prefix                   = var.dns_prefix
+  cost_analysis_enabled        = var.sku_tier == "Free" ? false : var.cost_analysis_enabled
+  private_cluster_enabled      = var.private_cluster_enabled
+  private_dns_zone_id          = var.private_cluster_enabled == true ? var.private_dns_zone_id : null
+  automatic_upgrade_channel    = var.automatic_upgrade_channel
+  image_cleaner_enabled        = var.image_cleaner_enabled
+  image_cleaner_interval_hours = var.image_cleaner_interval_hours
+  sku_tier                     = var.sku_tier
+  workload_identity_enabled    = var.workload_identity_enabled
+  oidc_issuer_enabled          = var.oidc_issuer_enabled
+  azure_policy_enabled         = var.azure_policy_enabled
+  disk_encryption_set_id       = var.disk_encryption_set_id
+  local_account_disabled       = true
+  run_command_enabled          = var.run_command_enabled
+  support_plan                 = var.support_plan
+  tags                         = var.tags
+  node_resource_group          = var.node_resource_group_name
 
   default_node_pool {
     name           = var.system_node_pool.name
@@ -27,12 +30,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     zones                        = var.system_node_pool.availability_zones
     node_labels                  = var.system_node_pool.node_labels
     only_critical_addons_enabled = var.system_node_pool.only_critical_addons_enabled
-    auto_scaling_enabled         = var.system_node_pool.enable_auto_scaling
-    host_encryption_enabled      = var.system_node_pool.enable_host_encryption
+    auto_scaling_enabled         = var.system_node_pool.auto_scaling_enabled
+    host_encryption_enabled      = var.system_node_pool.host_encryption_enabled
     node_public_ip_enabled       = var.system_node_pool.enable_node_public_ip
     max_pods                     = var.system_node_pool.max_pods
-    max_count                    = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.max_count : null
-    min_count                    = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.min_count : null
+    max_count                    = var.system_node_pool.auto_scaling_enabled == true ? var.system_node_pool.max_count : null
+    min_count                    = var.system_node_pool.auto_scaling_enabled == true ? var.system_node_pool.min_count : null
     node_count                   = var.system_node_pool.node_count
     os_disk_type                 = var.system_node_pool.os_disk_type
     os_disk_size_gb              = var.system_node_pool.os_disk_size_gb
@@ -56,7 +59,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   dynamic "kubelet_identity" {
-    for_each = var.kubelet_user_assigned_identity_id != null ? [var.kubelet_user_assigned_identity_id] : []
+    for_each = var.kubelet_identity != null ? [var.kubelet_identity] : []
 
     content {
       client_id                 = kubelet_identity.value.client_id
@@ -78,13 +81,14 @@ resource "azurerm_kubernetes_cluster" "this" {
     }
   }
 
-  identity {
-    type = "UserAssigned"
-    # TODO
-    identity_ids = tolist([try(var.control_plane_user_assigned_identity_id)])
-    # identity_ids = var.aks_managed_identity
-  }
+  dynamic "identity" {
+    for_each = local.managed_identities.system_assigned_user_assigned
 
+    content {
+      type         = identity.value.type
+      identity_ids = identity.value.user_assigned_resource_ids
+    }
+  }
 
   network_profile {
     network_plugin      = var.network_profile.network_plugin
@@ -181,8 +185,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   host_encryption_enabled     = each.value.host_encryption_enabled
   node_public_ip_enabled      = each.value.node_public_ip_enabled
   max_pods                    = each.value.max_pods
-  max_count                   = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.max_count : null
-  min_count                   = var.system_node_pool.enable_auto_scaling == true ? var.system_node_pool.min_count : null
+  max_count                   = var.system_node_pool.auto_scaling_enabled == true ? var.system_node_pool.max_count : null
+  min_count                   = var.system_node_pool.auto_scaling_enabled == true ? var.system_node_pool.min_count : null
   node_count                  = each.value.node_count
   os_disk_size_gb             = each.value.os_disk_size_gb
   os_disk_type                = each.value.os_disk_type

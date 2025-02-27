@@ -131,9 +131,6 @@ module "aks" {
   resource_group_name = azurerm_resource_group.rsg.name
   location            = azurerm_resource_group.rsg.location
 
-  # Pass the identity to the module
-  control_plane_user_assigned_identity_id = azurerm_user_assigned_identity.aks_identity.id
-
   vnet_id     = module.network.id
   node_subnet = module.network.subnets["AKSNodeSubnet"].id
 
@@ -148,6 +145,7 @@ module "aks" {
   # AKS Configuration
   kubernetes_cluster_name  = "akscluster"
   dns_prefix               = "akscluster"
+  sku_tier                 = "Free"
   node_resource_group_name = "${azurerm_resource_group.rsg.name}-nodes"
   disk_encryption_set_id   = module.des.resource_id
 
@@ -156,8 +154,8 @@ module "aks" {
     authorized_ip_ranges = ["123.123.123.123/32"]
   }
 
-  kubernetes_version      = "1.31.5"
-  private_dns_zone_id     = azurerm_private_dns_zone.aks.id
+  kubernetes_version  = "1.31.5"
+  private_dns_zone_id = azurerm_private_dns_zone.aks.id
 
   user_node_pool = {
     pool1 = {
@@ -170,7 +168,11 @@ module "aks" {
     }
   }
 
-  kubelet_user_assigned_identity_id = {
+  managed_identities = {
+    user_assigned_resource_ids = [azurerm_user_assigned_identity.aks_identity.id]
+  }
+
+  kubelet_identity = {
     user_managed_identity = azurerm_user_assigned_identity.kubelet_identity.id
   }
 

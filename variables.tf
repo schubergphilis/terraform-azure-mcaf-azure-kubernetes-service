@@ -38,7 +38,7 @@ variable "additional_routes" {
     next_hop_type          = optional(string)
     next_hop_in_ip_address = optional(string)
   }))
-  default = null
+  default     = null
   description = <<DESCRIPTION
 "A map of additional routes for the route table, only add when you use userDefinedRouting"
 - `name` - The name of the route.
@@ -78,10 +78,50 @@ variable "kubernetes_version" {
   default = "1.31.5"
 }
 
+variable "cost_analysis_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether or not cost analysis is enabled for the Kubernetes cluster. SKU must be Standard or Premium."
+
+  validation {
+    condition     = var.cost_analysis_enabled == false || var.sku_tier == "Standard" || var.sku_tier == "Premium"
+    error_message = "Cost analysis can only be enabled for Standard or Premium SKU."
+  }
+}
+
+variable "support_plan" {
+  type        = string
+  default     = "KubernetesOfficial"
+  description = "The support plan for the Kubernetes cluster. Defaults to KubernetesOfficial."
+
+  validation {
+    condition     = can(index(["KubernetesOfficial", "AKSLongTermSupport"], var.support_plan))
+    error_message = "The support plan must be one of: 'KubernetesOfficial' or 'AKSLongTermSupport'."
+  }
+}
+
+variable "run_command_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether or not the run command is enabled for the Kubernetes cluster."
+}
+
 variable "image_cleaner_enabled" {
   type        = bool
   default     = false
   description = "Whether or not the image cleaner is enabled for the Kubernetes cluster."
+}
+
+variable "image_cleaner_interval_hours" {
+  type = number
+  # According to the [schema](https://github.com/hashicorp/terraform-provider-azurerm/blob/v4.0.0/internal/services/containers/kubernetes_cluster_resource.go#L404-L408), the default value should be `null`.
+  default     = null
+  description = "(Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `0`."
+
+  validation {
+    condition     = var.image_cleaner_interval_hours == null ? true : var.image_cleaner_interval_hours >= 24 && var.image_cleaner_interval_hours <= 2160
+    error_message = "The image cleaner interval must be an int between 24 and 2160."
+  }
 }
 
 variable "private_cluster_enabled" {
@@ -104,13 +144,13 @@ variable "automatic_upgrade_channel" {
 }
 
 variable "sku_tier" {
-  description = "(Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are Free and Paid (which includes the Uptime SLA). Defaults to Free."
-  default     = "Free"
   type        = string
+  default     = "Standard"
+  description = "The SKU tier of the Kubernetes Cluster. Possible values are Free, Standard, and Premium."
 
   validation {
-    condition     = contains(["Free", "Paid"], var.sku_tier)
-    error_message = "The sku tier is invalid."
+    condition     = can(index(["Free", "Standard", "Premium"], var.sku_tier))
+    error_message = "The SKU tier must be one of: 'Free', 'Standard', or 'Premium'. Free does not have an SLA."
   }
 }
 
@@ -142,10 +182,10 @@ variable "system_node_pool" {
     availability_zones           = optional(list(string), ["1", "2", "3"])
     node_labels                  = optional(map(any), {})
     only_critical_addons_enabled = optional(bool, true)
-    enable_auto_scaling          = optional(bool, false)
-    enable_host_encryption       = optional(bool, true)
+    auto_scaling_enabled         = optional(bool, false)
+    host_encryption_enabled      = optional(bool, true)
     enable_node_public_ip        = optional(bool, false)
-    max_pods                     = optional(number, 250)
+    max_pods                     = optional(number, 75)
     max_count                    = optional(number, 3)
     min_count                    = optional(number, 1)
     node_count                   = optional(number, 2)
@@ -171,8 +211,8 @@ The default node pool configuration for the Kubernetes Cluster.
 - `availability_zones` - The availability zones of the default node pool.
 - `node_labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
 - `only_critical_addons_enabled` - Enabling this option will taint default node pool with CriticalAddonsOnly=true:NoSchedule taint.
-- `enable_auto_scaling` - Whether to enable auto-scaler. Defaults to false.
-- `enable_host_encryption` - Should the nodes in this Node Pool have host encryption enabled? Defaults to false.
+- `auto_scaling_enabled` - Whether to enable auto-scaler. Defaults to false.
+- `host_encryption_enabled` - Should the nodes in this Node Pool have host encryption enabled? Defaults to false.
 - `enable_node_public_ip` - Should each node have a Public IP Address? Defaults to false.
 - `max_pods` - The maximum number of pods that can run on each agent.
 - `max_count` - The maximum number of nodes which should exist within this Node Pool.
@@ -205,7 +245,7 @@ variable "user_node_pool" {
     auto_scaling_enabled        = optional(bool, false)
     host_encryption_enabled     = optional(bool, true)
     node_public_ip_enabled      = optional(bool, false)
-    max_pods                    = optional(number, 250)
+    max_pods                    = optional(number, 100)
     max_count                   = optional(number, 3)
     min_count                   = optional(number, 1)
     node_count                  = optional(number, 2)
@@ -251,13 +291,6 @@ The user node pool configuration for the Kubernetes Cluster.
 - `tags` - A map of tags to assign to the resource.
 DESCRIPTION
 }
-
-# # TODO: need to choose
-# variable "system_node_os_disk_type" {
-#   description = "(Optional) The type of disk which should be used for the Operating System. Possible values are Ephemeral and Managed. Defaults to Managed. Changing this forces a new resource to be created."
-#   type        = string
-#   default     = "Managed"
-# }
 
 variable "linux_profile" {
   description = "(Optional) The Linux Profile to use for the default node pool."
@@ -536,6 +569,11 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "location" {
+  description = "The Azure region where the AKS cluster will be created"
+  type        = string
+}
+
 variable "dns_prefix" {
   description = "DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created"
   type        = string
@@ -560,11 +598,6 @@ variable "aks_administrators" {
   type        = list(string)
 }
 
-variable "location" {
-  description = "The Azure region where the AKS cluster will be created"
-  type        = string
-}
-
 # ========================================
 # Identity Configuration
 # ========================================
@@ -574,7 +607,22 @@ variable "control_plane_user_assigned_identity_id" {
   default     = null
 }
 
-variable "kubelet_user_assigned_identity_id" {
+variable "managed_identities" {
+  type = object({
+    system_assigned            = optional(bool, false)
+    user_assigned_resource_ids = optional(set(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Controls the Managed Identity configuration on this resource. The following properties can be specified:
+
+- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
+- `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "kubelet_identity" {
   type = object({
     client_id                 = optional(string)
     object_id                 = optional(string)

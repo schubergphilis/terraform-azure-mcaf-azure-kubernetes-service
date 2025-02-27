@@ -131,18 +131,14 @@ module "aks" {
   resource_group_name = azurerm_resource_group.rsg.name
   location            = azurerm_resource_group.rsg.location
 
-  # Pass the identity to the module
-  control_plane_user_assigned_identity_id = azurerm_user_assigned_identity.aks_identity.id
-
   vnet_id     = module.network.id
   node_subnet = module.network.subnets["AKSNodeSubnet"].id
 
   network_profile = {
-    outbound_type       = "loadBalancer"
-    network_plugin      = "azure"
-    network_plugin_mode = "overlay"
-    dns_service_ip      = "10.0.0.10"
-    service_cidr        = "10.0.0.0/16"
+    outbound_type  = "loadBalancer"
+    network_plugin = "none"
+    dns_service_ip = "10.0.0.10"
+    service_cidr   = "10.0.0.0/16"
   }
 
   # AKS Configuration
@@ -166,11 +162,15 @@ module "aks" {
     }
   }
 
-  kubelet_user_assigned_identity_id = {
+  managed_identities = {
+    user_assigned_resource_ids = [azurerm_user_assigned_identity.aks_identity.id]
+  }
+
+  kubelet_identity = {
     user_managed_identity = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
-  aks_administrators = [] # Replace with actual admin group ID
+  aks_administrators = ["00000000-0000-0000-0000-000000000000"] # Replace with actual admin group ID
 
   tags = local.tags
 }

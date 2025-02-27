@@ -131,9 +131,6 @@ module "aks" {
   resource_group_name = azurerm_resource_group.rsg.name
   location            = azurerm_resource_group.rsg.location
 
-  # Pass the identity to the module
-  control_plane_user_assigned_identity_id = azurerm_user_assigned_identity.aks_identity.id
-
   vnet_id     = module.network.id
   node_subnet = module.network.subnets["AKSNodeSubnet"].id
 
@@ -166,7 +163,11 @@ module "aks" {
     }
   }
 
-  kubelet_user_assigned_identity_id = {
+  managed_identities = {
+    user_assigned_resource_ids = [azurerm_user_assigned_identity.aks_identity.id]
+  }
+
+  kubelet_identity = {
     user_managed_identity = azurerm_user_assigned_identity.kubelet_identity.id
   }
 
