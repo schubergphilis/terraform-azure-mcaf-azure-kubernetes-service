@@ -66,7 +66,7 @@ variable "api_server_access_profile" {
   default     = null
   description = <<DESCRIPTION
 The API server access profile for the Kubernetes cluster.
-- `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
+- `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["123.100.100.0/24"].
 DESCRIPTION
 }
 
@@ -113,8 +113,7 @@ variable "image_cleaner_enabled" {
 }
 
 variable "image_cleaner_interval_hours" {
-  type = number
-  # According to the [schema](https://github.com/hashicorp/terraform-provider-azurerm/blob/v4.0.0/internal/services/containers/kubernetes_cluster_resource.go#L404-L408), the default value should be `null`.
+  type        = number
   default     = null
   description = "(Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `0`."
 
@@ -601,12 +600,6 @@ variable "aks_administrators" {
 # ========================================
 # Identity Configuration
 # ========================================
-variable "control_plane_user_assigned_identity_id" {
-  description = "The ID of the User Assigned Identity that will be used by the AKS cluster. If not provided, a managed identity will be created."
-  type        = string
-  default     = null
-}
-
 variable "managed_identities" {
   type = object({
     system_assigned            = optional(bool, false)
@@ -616,10 +609,17 @@ variable "managed_identities" {
   description = <<DESCRIPTION
 Controls the Managed Identity configuration on this resource. The following properties can be specified:
 
+although system_assigned is possible, it is not recommended since you can't really use it with private dns zones.
+
 - `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
 - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
 DESCRIPTION
   nullable    = false
+
+  validation {
+    condition     = !(var.managed_identities.system_assigned && var.private_cluster_enabled)
+    error_message = "System assigned managed identity cannot be used when private_cluster_enabled is true."
+  }
 }
 
 variable "kubelet_identity" {

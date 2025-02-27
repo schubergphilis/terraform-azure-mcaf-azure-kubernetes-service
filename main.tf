@@ -166,6 +166,11 @@ resource "azurerm_kubernetes_cluster" "this" {
       condition     = var.network_profile.network_data_plane != "cilium" || (var.network_profile.network_plugin_mode == "overlay" || var.system_node_pool.pod_subnet_id != null)
       error_message = "When network_data_plane is set to cilium, one of either network_plugin_mode = 'overlay' or pod_subnet_id must be specified."
     }
+
+    precondition {
+      condition     = var.private_cluster_enabled == false || var.api_server_access_profile == null
+      error_message = "api_server_access_profile can only be used when private_cluster_enabled is set to false."
+    }
   }
 }
 

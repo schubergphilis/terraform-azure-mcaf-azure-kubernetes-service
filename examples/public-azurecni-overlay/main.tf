@@ -143,11 +143,13 @@ module "aks" {
   }
 
   # AKS Configuration
-  kubernetes_cluster_name  = "akscluster"
-  dns_prefix               = "akscluster"
-  sku_tier                 = "Free"
-  node_resource_group_name = "${azurerm_resource_group.rsg.name}-nodes"
-  disk_encryption_set_id   = module.des.resource_id
+  image_cleaner_enabled        = true
+  image_cleaner_interval_hours = 25
+  kubernetes_cluster_name      = "akscluster"
+  dns_prefix                   = "akscluster"
+  sku_tier                     = "Free"
+  node_resource_group_name     = "${azurerm_resource_group.rsg.name}-nodes"
+  disk_encryption_set_id       = module.des.resource_id
 
   private_cluster_enabled = false
   api_server_access_profile = {
