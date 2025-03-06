@@ -15,7 +15,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   oidc_issuer_enabled          = var.oidc_issuer_enabled
   azure_policy_enabled         = var.azure_policy_enabled
   disk_encryption_set_id       = var.disk_encryption_set_id
-  local_account_disabled       = true
+  local_account_disabled       = var.local_account_disabled
   run_command_enabled          = var.run_command_enabled
   support_plan                 = var.support_plan
   tags                         = var.tags

@@ -78,6 +78,11 @@ variable "kubernetes_version" {
   default = "1.31.5"
 }
 
+variable "local_account_disabled" {
+  type    = bool
+  default = true
+}
+
 variable "cost_analysis_enabled" {
   type        = bool
   default     = false
