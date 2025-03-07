@@ -19,11 +19,6 @@ output "system_assigned_mi_principal_id" {
   value       = try(azurerm_kubernetes_cluster.this.identity[0].principal_id, null)
 }
 
-output "kube_config" {
-  value = azurerm_kubernetes_cluster.this.kube_config
-}
-
-
 output "kube_admin_config" {
   value = azurerm_kubernetes_cluster.this.kube_admin_config
 }
