@@ -62,9 +62,9 @@ resource "azurerm_kubernetes_cluster" "this" {
     for_each = var.kubelet_identity != null ? [var.kubelet_identity] : []
 
     content {
-      client_id                 = kubelet_identity.value.client_id != null ? kubelet_identity.value.client_id  : null
-      object_id                 = kubelet_identity.value.object_id != null ? kubelet_identity.value.object_id  : null
-      user_assigned_identity_id = kubelet_identity.value.user_assigned_identity_id != null ? kubelet_identity.value.user_assigned_identity_id : null
+      client_id                 = kubelet_identity.value.client_id 
+      object_id                 = kubelet_identity.value.object_id 
+      user_assigned_identity_id = kubelet_identity.value.user_assigned_identity_id 
     }
   }
 
