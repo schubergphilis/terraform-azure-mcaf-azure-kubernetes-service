@@ -22,3 +22,7 @@ output "system_assigned_mi_principal_id" {
 output "kube_admin_config" {
   value = azurerm_kubernetes_cluster.this.kube_admin_config
 }
+
+output "kubelet_identity" {
+  value = azurerm_kubernetes_cluster.this.kubelet_identity
+}
