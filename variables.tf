@@ -78,6 +78,12 @@ variable "kubernetes_version" {
   default = "1.31.5"
 }
 
+variable "local_account_disabled" {
+  type        = bool
+  default     = true
+  description = "Whether or not the local account is disabled for the Kubernetes cluster, defaults to true."
+}
+
 variable "cost_analysis_enabled" {
   type        = bool
   default     = false
