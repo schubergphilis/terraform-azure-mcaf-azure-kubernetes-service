@@ -196,29 +196,47 @@ DESCRIPTION
 
 variable "maintenance_window_node_os" {
   type = object({
-    allowed = object({
-      day   = string
-      hours = list(number)
-    })
-    not_allowed = object({
-      end   = string
-      start = string
-    })
+    frequency   = string
+    interval    = number
+    duration    = number
+    day_of_week = optional(string)
+    week_index  = optional(string)
+    start_time  = string
+    utc_offset  = string
+    start_date  = optional(string)
+    not_allowed = optional(list(object({
+      end       = string
+      start     = string
+    })))
   })
   default = null
-
   description = <<DESCRIPTION
-"Configuration for the AKS node OS updates maintenance window. Set to null to disable this configuration."
-- `day_of_week` - Day of the week for maintenance (e.g., "Sunday", "Monday").
-- `utc_offset` - UTC offset for the maintenance window (e.g., "+00:00", "+01:00").
-- `start_time` - Start time for maintenance in 24-hour format (e.g., "00:00", "22:00").
-- `duration` - Duration of the maintenance window in hours (e.g., 4).
+"Configuration for the Node OS automatic upgrades maintenance window. Set to null to disable this configuration."
+- `frequency` - Frequency of maintenance (e.g., "Weekly", "Monthly").
+- `interval` - Interval between maintenance windows (e.g., 1 for every week or month).
+- `duration` - Duration of the maintenance window in hours.
+- `day_of_week` - Required for Weekly frequency (e.g., "Monday").
+- `week_index` - Required for Monthly frequency (e.g., "First", "Second", "Last").
+- `start_time` - Start time for maintenance in 24-hour format (e.g., "01:00").
+- `utc_offset` - UTC offset for the maintenance window (e.g., "+00:00").
+- `start_date` - (Optional) Start date for the maintenance window (RFC3339 format).
+- `not_allowed` - (Optional) List of blackout periods with start and end times (RFC3339 format).
 ```
 maintenance_window_node_os = {
-  day_of_week = "Sunday"
-  utc_offset  = "+00:00"
-  start_time  = "00:00"
+  frequency   = "Weekly"
+  interval    = 1
   duration    = 4
+  day_of_week = "Monday"
+  week_index  = "First"
+  start_time  = "01:00"
+  utc_offset  = "+00:00"
+  start_date  = "2023-12-01T00:00:00Z"
+  not_allowed = [
+    {
+    end   = "2023-12-31T00:00:00Z"
+    start = "2023-12-24T00:00:00Z"
+    }
+  ]
 }
 ```
 DESCRIPTION
@@ -241,7 +259,7 @@ variable "maintenance_window_auto_upgrade" {
   })
   default = null
   description = <<DESCRIPTION
-"Configuration for the AKS automatic upgrades maintenance window. Set to null to disable this configuration."
+"Configuration for the AKS cluster version automatic upgrades maintenance window. Set to null to disable this configuration."
 - `frequency` - Frequency of maintenance (e.g., "Weekly", "Monthly").
 - `interval` - Interval between maintenance windows (e.g., 1 for every week or month).
 - `duration` - Duration of the maintenance window in hours.
