@@ -212,7 +212,7 @@ variable "maintenance_window_node_os" {
   default = null
   description = <<DESCRIPTION
 "Configuration for the Node OS automatic upgrades maintenance window. Set to null to disable this configuration."
-- `frequency` - Frequency of maintenance (e.g., "Weekly", "Monthly").
+- `frequency` - Frequency of maintenance (e.g., "Weekly", "RelativeMonthly").
 - `interval` - Interval between maintenance windows (e.g., 1 for every week or month).
 - `duration` - Duration of the maintenance window in hours.
 - `day_of_week` - Required for Weekly frequency (e.g., "Monday").
