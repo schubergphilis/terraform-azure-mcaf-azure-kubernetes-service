@@ -96,7 +96,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     
     content {
       dynamic "allowed" {
-        for_each = var.maintenance_window.value.allowed != null ? [var.maintenance_window.value.allowed] : []
+        for_each = var.maintenance_window.allowed != null ? [var.maintenance_window.allowed] : []
 
         content {
           day    = maintenance_window.value.allowed.day
@@ -105,7 +105,7 @@ resource "azurerm_kubernetes_cluster" "this" {
       }
       
       dynamic "not_allowed" {
-        for_each = var.maintenance_window.value.not_allowed != null ? [var.maintenance_window.value.not_allowed] : []
+        for_each = var.maintenance_window.not_allowed != null ? [var.maintenance_window.not_allowed] : []
       
         content {
           end    = maintenance_window.value.not_allowed.end
@@ -127,7 +127,15 @@ resource "azurerm_kubernetes_cluster" "this" {
       start_time   = maintenance_window_auto_upgrade.value.start_time
       utc_offset   = maintenance_window_auto_upgrade.value.utc_offset
       start_date   = maintenance_window_auto_upgrade.value.start_date
-      not_allowed  = maintenance_window_auto_upgrade.value.not_allowed
+      
+      dynamic "not_allowed" {
+        for_each = var.maintenance_window_auto_upgrade.not_allowed != null ? [var.maintenance_window_auto_upgrade.not_allowed] : []
+      
+        content {
+          end    = maintenance_window_auto_upgrade.value.not_allowed.end
+          start  = maintenance_window_auto_upgrade.value.not_allowed.start
+        }
+      }
     }
   }
   
