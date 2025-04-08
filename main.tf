@@ -98,15 +98,19 @@ resource "azurerm_kubernetes_cluster" "this" {
       dynamic "allowed" {
         for_each = var.maintenance_window.value.allowed != null ? [var.maintenance_window.value.allowed] : []
 
-        day    = maintenance_window.value.allowed.day
-        hours  = maintenance_window.value.allowed.hours
+        content {
+          day    = maintenance_window.value.allowed.day
+          hours  = maintenance_window.value.allowed.hours
+        }
       }
       
       dynamic "not_allowed" {
         for_each = var.maintenance_window.value.not_allowed != null ? [var.maintenance_window.value.not_allowed] : []
       
-        end    = maintenance_window.value.not_allowed.end
-        start  = maintenance_window.value.not_allowed.start
+        content {
+          end    = maintenance_window.value.not_allowed.end
+          start  = maintenance_window.value.not_allowed.start
+        }
       }
     }
   }
