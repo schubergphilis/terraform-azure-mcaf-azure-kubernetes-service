@@ -143,10 +143,14 @@ resource "azurerm_kubernetes_cluster" "this" {
     for_each = var.maintenance_window_node_os != null ? [var.maintenance_window_node_os] : []
     
     content {
-      day_of_week  = maintenance_window_node_os.value.day_of_week
-      utc_offset   = maintenance_window_node_os.value.utc_offset
-      start_time   = maintenance_window_node_os.value.start_time
+      frequency    = maintenance_window_node_os.value.frequency
+      interval     = maintenance_window_node_os.value.interval
       duration     = maintenance_window_node_os.value.duration
+      day_of_week  = maintenance_window_node_os.value.day_of_week
+      week_index   = maintenance_window_node_os.value.week_index
+      start_time   = maintenance_window_node_os.value.start_time
+      utc_offset   = maintenance_window_node_os.value.utc_offset
+      start_date   = maintenance_window_node_os.value.start_date
     }
   }
   
