@@ -163,14 +163,14 @@ variable "node_os_upgrade_channel" {
 
 variable "maintenance_window" {
     type = object({
-    allowed = object({
+    allowed = optional(object({
       day   = string
       hours = list(number)
-    })
-    not_allowed = object({
+    }))
+    not_allowed = optional(object({
       end   = string
       start = string
-    })
+    }))
   })
   default = null
   description = <<DESCRIPTION
