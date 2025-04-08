@@ -9,9 +9,6 @@ resource "azurerm_kubernetes_cluster" "this" {
   private_dns_zone_id          = var.private_cluster_enabled == true ? var.private_dns_zone_id : null
   automatic_upgrade_channel    = var.automatic_upgrade_channel
   node_os_upgrade_channel      = var.node_os_upgrade_channel
-  maintenance_window           = var.maintenance_window
-  maintenance_window_auto_upgrade = var.maintenance_window_auto_upgrade
-  maintenance_window_node_os   = var.maintenance_window_node_os
   image_cleaner_enabled        = var.image_cleaner_enabled
   image_cleaner_interval_hours = var.image_cleaner_interval_hours
   sku_tier                     = var.sku_tier
