@@ -419,8 +419,8 @@ The user node pool configuration for the Kubernetes Cluster.
 - `name` - The name of the user node pool.
 - `vm_size` - The VM size of the user node pool.
 - `mode` - The mode of the user node pool.
-- `labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
-- `taints` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `node_labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `node_taints` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
 - `availability_zones` - The availability zones of the user node pool.
 - `auto_scaling_enabled` - Whether to enable auto-scaler. Defaults to false.
 - `host_encryption_enabled` - Should the nodes in this Node Pool have host encryption enabled? Defaults to false.
