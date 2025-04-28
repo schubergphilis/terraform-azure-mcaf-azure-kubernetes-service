@@ -250,8 +250,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "this" {
   name                        = each.value.name
   vm_size                     = each.value.vm_size
   mode                        = try(each.value.mode, "User")
-  node_labels                 = each.value.labels
-  node_taints                 = each.value.taints
+  node_labels                 = each.value.node_labels
+  node_taints                 = each.value.node_taints
   zones                       = each.value.availability_zones
   vnet_subnet_id              = try(each.value.node_subnet_id, var.node_subnet)
   pod_subnet_id               = try(each.value.pod_subnet_id, var.pod_subnet)
