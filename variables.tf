@@ -138,7 +138,7 @@ variable "private_cluster_enabled" {
 variable "automatic_upgrade_channel" {
   type        = string
   default     = null
-  description = "(Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. By default automatic-upgrades are turned off. Note that you cannot specify the patch version using `kubernetes_version` or `orchestrator_version` when using the `patch` upgrade channel. See [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-cluster) for more information"
+  description = "(Optional) The upgrade channel for the AKS version of this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. By default automatic-upgrades are turned off. Note that you cannot specify the patch version using `kubernetes_version` or `orchestrator_version` when using the `patch` upgrade channel. See [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-cluster) for more information"
 
   validation {
     condition = var.automatic_upgrade_channel == null ? true : contains([
@@ -147,6 +147,149 @@ variable "automatic_upgrade_channel" {
     error_message = "`automatic_upgrade_channel`'s possible values are `patch`, `stable`, `rapid` or `node-image`."
   }
 }
+
+variable "node_os_upgrade_channel" {
+  type        = string
+  default     = "None"
+  description = "(Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. By default automatic-upgrades are turned off. Note that you cannot specify the patch version using `kubernetes_version` or `orchestrator_version` when using the `patch` upgrade channel. See [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-cluster) for more information"
+
+  validation {
+    condition = var.node_os_upgrade_channel == "None" ? true : contains([
+      "Unmanaged", "SecurityPatch", "NodeImage"
+    ], var.node_os_upgrade_channel)
+    error_message = "`node_os_upgrade_channel`'s possible values are `Unmanaged`, `SecurityPatch` or `NodeImage`."
+  }
+}
+
+variable "maintenance_window" {
+    type = object({
+    allowed = optional(object({
+      day   = string
+      hours = list(number)
+    }))
+    not_allowed = optional(object({
+      end   = string
+      start = string
+    }))
+  })
+  default = null
+  description = <<DESCRIPTION
+"Configuration for the AKS cluster's general maintenance window. Set to null to disable this configuration. This will leave the scheduling up to microsoft."
+- `allowed.day` - Day of the week when maintenance is allowed (e.g., "Saturday").
+- `allowed.hours` - List of hours during the day when maintenance is allowed (e.g., [22, 23]).
+- `not_allowed.end` - End time for the blackout period (RFC3339 format).
+- `not_allowed.start` - Start time for the blackout period (RFC3339 format).
+```
+maintenance_window = {
+  allowed = {
+    day   = "Saturday"
+    hours = [22, 23]
+  }
+  not_allowed = {
+    end   = "2023-11-30T00:00:00Z"
+    start = "2023-11-01T00:00:00Z"
+  }
+}
+```
+DESCRIPTION
+}
+
+variable "maintenance_window_node_os" {
+  type = object({
+    frequency   = string
+    interval    = number
+    duration    = number
+    day_of_week = optional(string)
+    week_index  = optional(string)
+    start_time  = string
+    utc_offset  = string
+    start_date  = optional(string)
+    not_allowed = optional(list(object({
+      end       = string
+      start     = string
+    })))
+  })
+  default = null
+  description = <<DESCRIPTION
+"Configuration for the Node OS automatic upgrades maintenance window. Set to null to disable this configuration."
+- `frequency` - Frequency of maintenance (e.g., "Weekly", "RelativeMonthly").
+- `interval` - Interval between maintenance windows (e.g., 1 for every week or month).
+- `duration` - Duration of the maintenance window in hours.
+- `day_of_week` - Required for Weekly frequency (e.g., "Monday").
+- `week_index` - Required for Monthly frequency (e.g., "First", "Second", "Last").
+- `start_time` - Start time for maintenance in 24-hour format (e.g., "01:00").
+- `utc_offset` - UTC offset for the maintenance window (e.g., "+00:00").
+- `start_date` - (Optional) Start date for the maintenance window (RFC3339 format).
+- `not_allowed` - (Optional) List of blackout periods with start and end times (RFC3339 format).
+```
+maintenance_window_node_os = {
+  frequency   = "Weekly"
+  interval    = 1
+  duration    = 4
+  day_of_week = "Monday"
+  week_index  = "First"
+  start_time  = "01:00"
+  utc_offset  = "+00:00"
+  start_date  = "2023-12-01T00:00:00Z"
+  not_allowed = [
+    {
+    end   = "2023-12-31T00:00:00Z"
+    start = "2023-12-24T00:00:00Z"
+    }
+  ]
+}
+```
+DESCRIPTION
+}
+
+variable "maintenance_window_auto_upgrade" {
+  type = object({
+    frequency   = string
+    interval    = number
+    duration    = number
+    day_of_week = optional(string)
+    week_index  = optional(string)
+    start_time  = string
+    utc_offset  = string
+    start_date  = optional(string)
+    not_allowed = optional(list(object({
+      end       = string
+      start     = string
+    })))
+  })
+  default = null
+  description = <<DESCRIPTION
+"Configuration for the AKS cluster version automatic upgrades maintenance window. Set to null to disable this configuration."
+- `frequency` - Frequency of maintenance (e.g., "Weekly", "Monthly").
+- `interval` - Interval between maintenance windows (e.g., 1 for every week or month).
+- `duration` - Duration of the maintenance window in hours.
+- `day_of_week` - Required for Weekly frequency (e.g., "Monday").
+- `week_index` - Required for Monthly frequency (e.g., "First", "Second", "Last").
+- `start_time` - Start time for maintenance in 24-hour format (e.g., "01:00").
+- `utc_offset` - UTC offset for the maintenance window (e.g., "+00:00").
+- `start_date` - (Optional) Start date for the maintenance window (RFC3339 format).
+- `not_allowed` - (Optional) List of blackout periods with start and end times (RFC3339 format).
+```
+maintenance_window_auto_upgrade = {
+  frequency   = "Weekly"
+  interval    = 1
+  duration    = 4
+  day_of_week = "Monday"
+  week_index  = "First"
+  start_time  = "01:00"
+  utc_offset  = "+00:00"
+  start_date  = "2023-12-01T00:00:00Z"
+  not_allowed = [
+    {
+    end   = "2023-12-31T00:00:00Z"
+    start = "2023-12-24T00:00:00Z"
+    }
+  ]
+}
+```
+DESCRIPTION
+}
+
 
 variable "sku_tier" {
   type        = string
@@ -244,8 +387,8 @@ variable "user_node_pool" {
     name                        = optional(string, null)
     vm_size                     = optional(string, "Standard_D2s_v5")
     mode                        = optional(string, "User")
-    labels                      = optional(map(any), {})
-    taints                      = optional(list(string), [])
+    node_labels                 = optional(map(any), {})
+    node_taints                 = optional(list(string), [])
     availability_zones          = optional(list(string), ["1", "2", "3"])
     auto_scaling_enabled        = optional(bool, false)
     host_encryption_enabled     = optional(bool, true)
@@ -276,8 +419,8 @@ The user node pool configuration for the Kubernetes Cluster.
 - `name` - The name of the user node pool.
 - `vm_size` - The VM size of the user node pool.
 - `mode` - The mode of the user node pool.
-- `labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
-- `taints` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `node_labels` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
+- `node_taints` - A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g key=value:NoSchedule).
 - `availability_zones` - The availability zones of the user node pool.
 - `auto_scaling_enabled` - Whether to enable auto-scaler. Defaults to false.
 - `host_encryption_enabled` - Should the nodes in this Node Pool have host encryption enabled? Defaults to false.
