@@ -1,5 +1,5 @@
 # terraform-azure-mcaf-azure-kubernetes-service
-Terraform module that will deploy some infra that could be used for Azure Devops icm Terraform
+Terraform module that will deploy an Azure Kubernetes Service cluster.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
