@@ -228,7 +228,8 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   lifecycle {
     ignore_changes = [
-      kubernetes_version
+      kubernetes_version,
+      microsoft_defender
     ]
 
     precondition {
