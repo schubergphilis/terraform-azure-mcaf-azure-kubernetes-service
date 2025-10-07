@@ -63,9 +63,9 @@ resource "azurerm_kubernetes_cluster" "this" {
     for_each = var.kubelet_identity != null ? [var.kubelet_identity] : []
 
     content {
-      client_id                 = kubelet_identity.value.client_id 
-      object_id                 = kubelet_identity.value.object_id 
-      user_assigned_identity_id = kubelet_identity.value.user_assigned_identity_id 
+      client_id                 = kubelet_identity.value.client_id
+      object_id                 = kubelet_identity.value.object_id
+      user_assigned_identity_id = kubelet_identity.value.user_assigned_identity_id
     }
   }
 
@@ -90,26 +90,26 @@ resource "azurerm_kubernetes_cluster" "this" {
       identity_ids = identity.value.user_assigned_resource_ids
     }
   }
-  
+
   dynamic "maintenance_window" {
     for_each = var.maintenance_window != null ? [var.maintenance_window] : []
-    
+
     content {
       dynamic "allowed" {
         for_each = var.maintenance_window.allowed != null ? [var.maintenance_window.allowed] : []
 
         content {
-          day    = maintenance_window.value.allowed.day
-          hours  = maintenance_window.value.allowed.hours
+          day   = maintenance_window.value.allowed.day
+          hours = maintenance_window.value.allowed.hours
         }
       }
-      
+
       dynamic "not_allowed" {
         for_each = var.maintenance_window.not_allowed != null ? [var.maintenance_window.not_allowed] : []
-      
+
         content {
-          end    = maintenance_window.value.not_allowed.end
-          start  = maintenance_window.value.not_allowed.start
+          end   = maintenance_window.value.not_allowed.end
+          start = maintenance_window.value.not_allowed.start
         }
       }
     }
@@ -117,43 +117,43 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   dynamic "maintenance_window_auto_upgrade" {
     for_each = var.maintenance_window_auto_upgrade != null ? [var.maintenance_window_auto_upgrade] : []
-    
+
     content {
-      frequency    = maintenance_window_auto_upgrade.value.frequency
-      interval     = maintenance_window_auto_upgrade.value.interval
-      duration     = maintenance_window_auto_upgrade.value.duration
-      day_of_week  = maintenance_window_auto_upgrade.value.day_of_week
-      week_index   = maintenance_window_auto_upgrade.value.week_index
-      start_time   = maintenance_window_auto_upgrade.value.start_time
-      utc_offset   = maintenance_window_auto_upgrade.value.utc_offset
-      start_date   = maintenance_window_auto_upgrade.value.start_date
-      
+      frequency   = maintenance_window_auto_upgrade.value.frequency
+      interval    = maintenance_window_auto_upgrade.value.interval
+      duration    = maintenance_window_auto_upgrade.value.duration
+      day_of_week = maintenance_window_auto_upgrade.value.day_of_week
+      week_index  = maintenance_window_auto_upgrade.value.week_index
+      start_time  = maintenance_window_auto_upgrade.value.start_time
+      utc_offset  = maintenance_window_auto_upgrade.value.utc_offset
+      start_date  = maintenance_window_auto_upgrade.value.start_date
+
       dynamic "not_allowed" {
         for_each = var.maintenance_window_auto_upgrade.not_allowed != null ? [var.maintenance_window_auto_upgrade.not_allowed] : []
-      
+
         content {
-          end    = maintenance_window_auto_upgrade.value.not_allowed.end
-          start  = maintenance_window_auto_upgrade.value.not_allowed.start
+          end   = maintenance_window_auto_upgrade.value.not_allowed.end
+          start = maintenance_window_auto_upgrade.value.not_allowed.start
         }
       }
     }
   }
-  
+
   dynamic "maintenance_window_node_os" {
     for_each = var.maintenance_window_node_os != null ? [var.maintenance_window_node_os] : []
-    
+
     content {
-      frequency    = maintenance_window_node_os.value.frequency
-      interval     = maintenance_window_node_os.value.interval
-      duration     = maintenance_window_node_os.value.duration
-      day_of_week  = maintenance_window_node_os.value.day_of_week
-      week_index   = maintenance_window_node_os.value.week_index
-      start_time   = maintenance_window_node_os.value.start_time
-      utc_offset   = maintenance_window_node_os.value.utc_offset
-      start_date   = maintenance_window_node_os.value.start_date
+      frequency   = maintenance_window_node_os.value.frequency
+      interval    = maintenance_window_node_os.value.interval
+      duration    = maintenance_window_node_os.value.duration
+      day_of_week = maintenance_window_node_os.value.day_of_week
+      week_index  = maintenance_window_node_os.value.week_index
+      start_time  = maintenance_window_node_os.value.start_time
+      utc_offset  = maintenance_window_node_os.value.utc_offset
+      start_date  = maintenance_window_node_os.value.start_date
     }
   }
-  
+
   network_profile {
     network_plugin      = var.network_profile.network_plugin
     dns_service_ip      = var.network_profile.dns_service_ip
@@ -187,6 +187,15 @@ resource "azurerm_kubernetes_cluster" "this" {
       content {
         idle_timeout_in_minutes   = var.network_profile.nat_gateway_profile.idle_timeout_in_minutes
         managed_outbound_ip_count = var.network_profile.nat_gateway_profile.managed_outbound_ip_count
+      }
+    }
+
+    dynamic "advanced_networking" {
+      for_each = var.network_profile.advanced_networking != null ? [var.network_profile.advanced_networking] : []
+
+      content {
+        observability_enabled = var.network_profile.advanced_networking.observability_enabled
+        security_enabled      = var.network_profile.advanced_networking.security_enabled
       }
     }
   }
