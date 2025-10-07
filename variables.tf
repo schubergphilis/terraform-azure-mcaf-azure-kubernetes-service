@@ -162,7 +162,7 @@ variable "node_os_upgrade_channel" {
 }
 
 variable "maintenance_window" {
-    type = object({
+  type = object({
     allowed = optional(object({
       day   = string
       hours = list(number)
@@ -172,7 +172,7 @@ variable "maintenance_window" {
       start = string
     }))
   })
-  default = null
+  default     = null
   description = <<DESCRIPTION
 "Configuration for the AKS cluster's general maintenance window. Set to null to disable this configuration. This will leave the scheduling up to microsoft."
 - `allowed.day` - Day of the week when maintenance is allowed (e.g., "Saturday").
@@ -205,11 +205,11 @@ variable "maintenance_window_node_os" {
     utc_offset  = string
     start_date  = optional(string)
     not_allowed = optional(list(object({
-      end       = string
-      start     = string
+      end   = string
+      start = string
     })))
   })
-  default = null
+  default     = null
   description = <<DESCRIPTION
 "Configuration for the Node OS automatic upgrades maintenance window. Set to null to disable this configuration."
 - `frequency` - Frequency of maintenance (e.g., "Weekly", "RelativeMonthly").
@@ -253,11 +253,11 @@ variable "maintenance_window_auto_upgrade" {
     utc_offset  = string
     start_date  = optional(string)
     not_allowed = optional(list(object({
-      end       = string
-      start     = string
+      end   = string
+      start = string
     })))
   })
-  default = null
+  default     = null
   description = <<DESCRIPTION
 "Configuration for the AKS cluster version automatic upgrades maintenance window. Set to null to disable this configuration."
 - `frequency` - Frequency of maintenance (e.g., "Weekly", "Monthly").
@@ -559,6 +559,10 @@ variable "network_profile" {
     nat_gateway_profile = optional(object({
       managed_outbound_ip_count = optional(number)
       idle_timeout_in_minutes   = optional(number)
+    }))
+    advanced_networking = optional(object({
+      observability_enabled = optional(bool)
+      security_enabled      = optional(bool)
     }))
   })
   default     = {}
