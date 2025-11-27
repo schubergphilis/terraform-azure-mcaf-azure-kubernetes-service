@@ -21,6 +21,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   support_plan                 = var.support_plan
   tags                         = var.tags
   node_resource_group          = var.node_resource_group_name
+  custom_ca_trust_certificates_base64 = var.custom_ca_trust_certificates_base64 != [] ? var.custom_ca_trust_certificates_base64 : null
 
   default_node_pool {
     name           = var.system_node_pool.name
