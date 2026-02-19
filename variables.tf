@@ -679,3 +679,9 @@ variable "kubelet_identity" {
   default     = null
   description = "The kubelet identity for the Kubernetes cluster."
 }
+
+variable "custom_ca_trust_certificates_base64" {
+  default = []
+  type = list
+  description = "A list of up to 10 base64 encoded CA certificates that will be added to the trust store on nodes."
+}
