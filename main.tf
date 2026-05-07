@@ -367,7 +367,7 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
 
   scope                = var.vnet_id
   role_definition_name = "Network Contributor"
-  principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.k8s[0].principal_id
 
   depends_on = [azurerm_route_table.this]
 }
@@ -377,7 +377,7 @@ resource "azurerm_role_assignment" "aks_dns" {
 
   scope                = var.private_dns_zone_id
   role_definition_name = "Private DNS Zone Contributor"
-  principal_id         = data.azurerm_user_assigned_identity.k8s.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.k8s[0].principal_id
 
   lifecycle {
     precondition {
