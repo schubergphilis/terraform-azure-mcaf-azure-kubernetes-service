@@ -3,7 +3,8 @@
 # }
 
 output "resource" {
-  value = azurerm_kubernetes_cluster.this
+  value     = azurerm_kubernetes_cluster.this
+  sensitive = true
 }
 
 output "resource_id" {
@@ -20,7 +21,8 @@ output "system_assigned_mi_principal_id" {
 }
 
 output "kube_admin_config" {
-  value = azurerm_kubernetes_cluster.this.kube_admin_config
+  value     = azurerm_kubernetes_cluster.this.kube_admin_config
+  sensitive = true
 }
 
 output "kubelet_identity" {
