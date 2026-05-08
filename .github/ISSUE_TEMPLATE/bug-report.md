@@ -10,7 +10,7 @@ assignees: ''
 **💡 Problem description**
 Enter summary of the problem here.
 
-**✏️ Name and email of requester** 
+**✏️ Name and email of requester**
 Details of the requester.
 
 **☹️ Current Behavior**

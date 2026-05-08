@@ -520,4 +520,3 @@ run "accept_null_api_server_access_profile" {
     # api_server_access_profile defaults to null
   }
 }
-
