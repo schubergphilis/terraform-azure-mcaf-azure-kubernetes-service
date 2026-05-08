@@ -66,8 +66,20 @@ variable "api_server_access_profile" {
   default     = null
   description = <<DESCRIPTION
 The API server access profile for the Kubernetes cluster.
-- `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["123.100.100.0/24"].
+- `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["123.100.100.0/24"]. Must be public IPs only.
 DESCRIPTION
+
+  validation {
+    condition = (
+      var.api_server_access_profile == null ||
+      var.api_server_access_profile.authorized_ip_ranges == null ||
+      alltrue([
+        for cidr in coalesce(try(var.api_server_access_profile.authorized_ip_ranges, []), []) :
+        !can(regex("^(10\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|192\\.168\\.|127\\.|169\\.254\\.|100\\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\\.)", cidr))
+      ])
+    )
+    error_message = "api_server_access_profile.authorized_ip_ranges must contain only public IPs. RFC 1918 (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), loopback (127.0.0.0/8), link-local (169.254.0.0/16), and CGNAT (100.64.0.0/10) ranges are rejected."
+  }
 }
 
 # ========================================
@@ -668,6 +680,11 @@ DESCRIPTION
     condition     = !(var.managed_identities.system_assigned && var.private_cluster_enabled)
     error_message = "System assigned managed identity cannot be used when private_cluster_enabled is true."
   }
+
+  validation {
+    condition     = !var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) == 0
+    error_message = "Either system_assigned must be true or user_assigned_resource_ids must not be empty. When both are specified, user assigned managed identities will be used and the system assigned identity will not be enabled."
+  }
 }
 
 variable "kubelet_identity" {
@@ -681,7 +698,7 @@ variable "kubelet_identity" {
 }
 
 variable "custom_ca_trust_certificates_base64" {
-  default = []
-  type = list
+  default     = []
+  type        = list(any)
   description = "A list of up to 10 base64 encoded CA certificates that will be added to the trust store on nodes."
 }

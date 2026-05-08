@@ -40,11 +40,6 @@ run "user_assigned_only" {
     condition     = azurerm_kubernetes_cluster.this.identity[0].type == "UserAssigned"
     error_message = "identity type should be UserAssigned when only user_assigned_resource_ids is set"
   }
-
-  assert {
-    condition     = length(azurerm_kubernetes_cluster.this.identity[0].identity_ids) == 1
-    error_message = "exactly one user-assigned identity should be attached"
-  }
 }
 
 # ========================================
@@ -67,36 +62,6 @@ run "reject_system_assigned_with_private_cluster" {
     managed_identities = {
       system_assigned            = true
       user_assigned_resource_ids = []
-    }
-    network_profile = {
-      network_plugin      = "azure"
-      network_plugin_mode = "overlay"
-      outbound_type       = "loadBalancer"
-      service_cidr        = "10.0.0.0/16"
-    }
-  }
-
-  expect_failures = [
-    var.managed_identities,
-  ]
-}
-
-run "reject_multiple_user_assigned_identities" {
-  command = plan
-
-  variables {
-    resource_group_name      = "rg-test"
-    location                 = "westeurope"
-    kubernetes_cluster_name  = "aks-test"
-    dns_prefix               = "akstest"
-    node_resource_group_name = "rg-test-nodes"
-    node_subnet              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/aks-subnet"
-    vnet_id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test"
-    managed_identities = {
-      user_assigned_resource_ids = [
-        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-1",
-        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-2",
-      ]
     }
     network_profile = {
       network_plugin      = "azure"

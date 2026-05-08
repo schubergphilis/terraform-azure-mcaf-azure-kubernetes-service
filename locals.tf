@@ -1,22 +1,21 @@
 locals {
   managed_identities = {
-    system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
-      this = {
-        type                       = var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
-    system_assigned = var.managed_identities.system_assigned ? {
-      this = {
-        type = "SystemAssigned"
-      }
-    } : {}
-    user_assigned = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
-      this = {
-        type                       = "UserAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
+    this = var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) == 0 ? {
+      type        = "SystemAssigned"
+      resource_id = null
+      } : {
+      type        = "UserAssigned"
+      resource_id = var.managed_identities.user_assigned_resource_ids
+    }
   }
-  user_assigned_identity = length(local.managed_identities.system_assigned_user_assigned.this.user_assigned_resource_ids) > 0 ? provider::azurerm::parse_resource_id(tolist(local.managed_identities.system_assigned_user_assigned.this.user_assigned_resource_ids)[0]) : null
+  user_assigned_identity = length(var.managed_identities.user_assigned_resource_ids) > 0 ? provider::azurerm::parse_resource_id(tolist(var.managed_identities.user_assigned_resource_ids)[0]) : null
+
+  # Principal ID used for role assignments owned by this module.
+  # User-assigned mode → look up the UAMI's principal_id via data source.
+  # System-assigned mode → use the cluster's auto-generated identity.
+  identity_principal_id = (
+    length(var.managed_identities.user_assigned_resource_ids) > 0
+    ? data.azurerm_user_assigned_identity.k8s[0].principal_id
+    : azurerm_kubernetes_cluster.this.identity[0].principal_id
+  )
 }

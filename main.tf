@@ -1,26 +1,26 @@
 resource "azurerm_kubernetes_cluster" "this" {
-  name                         = var.kubernetes_cluster_name
-  location                     = var.location
-  resource_group_name          = var.resource_group_name
-  kubernetes_version           = var.kubernetes_version
-  dns_prefix                   = var.dns_prefix
-  cost_analysis_enabled        = var.sku_tier == "Free" ? false : var.cost_analysis_enabled
-  private_cluster_enabled      = var.private_cluster_enabled
-  private_dns_zone_id          = var.private_cluster_enabled == true ? var.private_dns_zone_id : null
-  automatic_upgrade_channel    = var.automatic_upgrade_channel
-  node_os_upgrade_channel      = var.node_os_upgrade_channel
-  image_cleaner_enabled        = var.image_cleaner_enabled
-  image_cleaner_interval_hours = var.image_cleaner_interval_hours
-  sku_tier                     = var.sku_tier
-  workload_identity_enabled    = var.workload_identity_enabled
-  oidc_issuer_enabled          = var.oidc_issuer_enabled
-  azure_policy_enabled         = var.azure_policy_enabled
-  disk_encryption_set_id       = var.disk_encryption_set_id
-  local_account_disabled       = var.local_account_disabled
-  run_command_enabled          = var.run_command_enabled
-  support_plan                 = var.support_plan
-  tags                         = var.tags
-  node_resource_group          = var.node_resource_group_name
+  name                                = var.kubernetes_cluster_name
+  location                            = var.location
+  resource_group_name                 = var.resource_group_name
+  kubernetes_version                  = var.kubernetes_version
+  dns_prefix                          = var.dns_prefix
+  cost_analysis_enabled               = var.sku_tier == "Free" ? false : var.cost_analysis_enabled
+  private_cluster_enabled             = var.private_cluster_enabled
+  private_dns_zone_id                 = var.private_cluster_enabled == true ? var.private_dns_zone_id : null
+  automatic_upgrade_channel           = var.automatic_upgrade_channel
+  node_os_upgrade_channel             = var.node_os_upgrade_channel
+  image_cleaner_enabled               = var.image_cleaner_enabled
+  image_cleaner_interval_hours        = var.image_cleaner_interval_hours
+  sku_tier                            = var.sku_tier
+  workload_identity_enabled           = var.workload_identity_enabled
+  oidc_issuer_enabled                 = var.oidc_issuer_enabled
+  azure_policy_enabled                = var.azure_policy_enabled
+  disk_encryption_set_id              = var.disk_encryption_set_id
+  local_account_disabled              = var.local_account_disabled
+  run_command_enabled                 = var.run_command_enabled
+  support_plan                        = var.support_plan
+  tags                                = var.tags
+  node_resource_group                 = var.node_resource_group_name
   custom_ca_trust_certificates_base64 = var.custom_ca_trust_certificates_base64 != [] ? var.custom_ca_trust_certificates_base64 : null
 
   default_node_pool {
@@ -84,11 +84,11 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   dynamic "identity" {
-    for_each = local.managed_identities.system_assigned_user_assigned
+    for_each = local.managed_identities
 
     content {
       type         = identity.value.type
-      identity_ids = identity.value.user_assigned_resource_ids
+      identity_ids = identity.value.resource_id != null ? identity.value.resource_id : null
     }
   }
 
@@ -367,7 +367,17 @@ resource "azurerm_role_assignment" "aks_vnet_rbac" {
 
   scope                = var.vnet_id
   role_definition_name = "Network Contributor"
-  principal_id         = data.azurerm_user_assigned_identity.k8s[0].principal_id
+  principal_id         = local.identity_principal_id
+
+  depends_on = [azurerm_route_table.this]
+}
+
+resource "azurerm_role_assignment" "aks_subnet_rbac" {
+  count = var.network_profile.network_plugin_mode == "azure" ? 0 : 1
+
+  scope                = var.node_subnet
+  role_definition_name = "Network Contributor"
+  principal_id         = local.identity_principal_id
 
   depends_on = [azurerm_route_table.this]
 }
@@ -377,7 +387,7 @@ resource "azurerm_role_assignment" "aks_dns" {
 
   scope                = var.private_dns_zone_id
   role_definition_name = "Private DNS Zone Contributor"
-  principal_id         = data.azurerm_user_assigned_identity.k8s[0].principal_id
+  principal_id         = local.identity_principal_id
 
   lifecycle {
     precondition {
